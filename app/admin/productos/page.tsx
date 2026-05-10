@@ -68,35 +68,41 @@ export default function ProductosAdmin() {
     <AdminProtected>
       <div className="min-h-screen bg-cream">
       <header className="bg-charcoal text-gold py-4 px-6 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Gestionar Productos</h1>
-          <div className="flex gap-4">
-            <Link href="/admin/dashboard" className="text-gold-light hover:text-white">← Dashboard</Link>
-            <Link href="/admin/modulos" className="text-gold-light hover:text-white">Módulos</Link>
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold">Gestionar Productos</h1>
+          <div className="flex gap-2">
+            <Link href="/admin/dashboard" className="px-3 py-1.5 rounded-lg border border-gold text-gold hover:bg-gold hover:text-white transition text-sm">
+              ← Dashboard
+            </Link>
+            <Link href="/admin/modulos" className="px-3 py-1.5 rounded-lg border border-gold text-gold hover:bg-gold hover:text-white transition text-sm">
+              Módulos
+            </Link>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex gap-4">
-            <button
-              onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
-              className="btn-gold"
-            >
-              + Nuevo Producto
-            </button>
-            <button
-              onClick={() => setFilterAgotados(!filterAgotados)}
-              className={`px-4 py-2 rounded-lg border ${filterAgotados ? 'bg-red-500 text-white border-red-500' : 'border-red-500 text-red-500'}`}
-            >
-              {filterAgotados ? 'Ver todos' : 'Solo agotados'}
-            </button>
-          </div>
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
+          <button
+            onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
+            className="px-4 py-2 rounded-lg border-2 border-charcoal text-charcoal bg-white hover:bg-charcoal hover:text-white transition text-sm font-semibold"
+          >
+            + Nuevo Producto
+          </button>
+          <button
+            onClick={() => setFilterAgotados(!filterAgotados)}
+            className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition ${
+              filterAgotados
+                ? 'bg-red-500 text-white border-red-500'
+                : 'border-red-500 text-red-500 bg-white hover:bg-red-500 hover:text-white'
+            }`}
+          >
+            {filterAgotados ? 'Ver todos' : 'Solo Agotados'}
+          </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl shadow-md overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead className="bg-gold text-white">
               <tr>
                 <th className="px-4 py-3 text-left w-24">Imagen</th>
@@ -318,16 +324,44 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
                 </div>
               )}
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-              id="image-upload"
-            />
-            <label htmlFor="image-upload" className="cursor-pointer text-gold hover:text-gold-dark text-sm font-medium">
-              {uploading ? 'Subiendo...' : form.imagen_url ? 'Cambiar imagen' : 'Subir imagen'}
-            </label>
+            {uploading ? (
+              <span className="text-gold text-sm">Subiendo...</span>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="camera-upload"
+                  />
+                  <label htmlFor="camera-upload" className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Tomar Foto
+                  </label>
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="gallery-upload"
+                  />
+                  <label htmlFor="gallery-upload" className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Galería
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
@@ -342,14 +376,14 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Módulo</label>
               <div className="flex gap-2">
                 <select
                   value={form.modulo_id}
                   onChange={(e) => setForm({ ...form, modulo_id: e.target.value, subcategoria_id: '' })}
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold min-w-0"
                   required
                 >
                   <option value="">Seleccionar...</option>
@@ -360,7 +394,7 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
                 <button
                   type="button"
                   onClick={onOpenNuevoModulo}
-                  className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold"
+                  className="px-2 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold text-lg flex-shrink-0"
                   title="Crear nuevo módulo"
                 >
                   +
@@ -373,7 +407,7 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
                 <select
                   value={form.subcategoria_id}
                   onChange={(e) => setForm({ ...form, subcategoria_id: e.target.value })}
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold min-w-0"
                   disabled={!form.modulo_id}
                 >
                   <option value="">Ninguna</option>
@@ -384,7 +418,7 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
                 <button
                   type="button"
                   onClick={onOpenNuevaSubcategoria}
-                  className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold"
+                  className="px-2 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold text-lg flex-shrink-0"
                   disabled={!form.modulo_id}
                   title="Crear nueva subcategoría"
                 >
@@ -394,7 +428,7 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Precio (Bs)</label>
               <input

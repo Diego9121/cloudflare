@@ -62,28 +62,22 @@ export default function Dashboard() {
   return (
     <AdminProtected>
       <div className="min-h-screen" style={{ backgroundColor: '#FFF8E7' }}>
-      <header className="bg-charcoal text-gold py-4 px-6 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center shadow-md">
-              <span className="text-white text-lg font-bold">JB</span>
+      <header className="bg-charcoal text-gold py-3 px-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-start gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center shadow-md">
+              <span className="text-white text-base font-bold">JB</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Panel Admin</h1>
+              <h1 className="text-lg font-bold text-white">Panel Admin</h1>
               <p className="text-xs text-gold/70 tracking-widest uppercase">Joyería Bella</p>
             </div>
           </div>
-          <div className="flex gap-4 items-center">
-            <Link href="/" className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-gold-light hover:text-white transition text-sm font-medium">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
+          <div className="flex flex-col gap-2">
+            <Link href="/" className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-gold-light hover:text-white transition text-sm text-center font-medium">
               Ver Catálogo
             </Link>
-            <button onClick={logout} className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition text-sm font-medium">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+            <button onClick={logout} className="px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition text-sm text-center font-medium">
               Cerrar Sesión
             </button>
           </div>
@@ -143,8 +137,8 @@ export default function Dashboard() {
             <div className="text-3xl font-bold text-blue-500 mb-1">{stats.cotizacionesPendientes}</div>
             <div className="text-sm text-blue-400 font-medium">Cotizaciones</div>
             {stats.cotizacionesPendientes > 0 && (
-              <span className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-md">
-                {stats.cotizacionesPendientes}
+              <span className="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 text-white text-[10px] sm:text-xs font-bold rounded-full flex items-center justify-center shadow-md">
+                {stats.cotizacionesPendientes > 99 ? '99+' : stats.cotizacionesPendientes}
               </span>
             )}
           </Link>
@@ -219,8 +213,8 @@ export default function Dashboard() {
                   <p className="text-sm text-white/80">Ver y aprobar cotizaciones</p>
                 </div>
                 {stats.cotizacionesPendientes > 0 && (
-                  <span className="absolute right-4 bg-red-500 text-white text-sm px-3 py-1 rounded-full font-bold shadow-md">
-                    {stats.cotizacionesPendientes} pendiente{stats.cotizacionesPendientes > 1 ? 's' : ''}
+                  <span className="absolute right-2 top-2 bg-red-500 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-bold shadow-md">
+                    ({stats.cotizacionesPendientes > 99 ? '99+' : stats.cotizacionesPendientes}) pend
                   </span>
                 )}
               </Link>
