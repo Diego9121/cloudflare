@@ -5,7 +5,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export async function generateProductCode(moduloId: string): Promise<string> {
+export async function generateProductCode(moduloId: string, subcategoriaId?: string | null): Promise<string> {
   const { data: modulo } = await supabase
     .from('modulos')
     .select('prefijo_codigo')
@@ -14,7 +14,19 @@ export async function generateProductCode(moduloId: string): Promise<string> {
   
   if (!modulo) throw new Error('Módulo no encontrado');
   
-  const prefijo = modulo.prefijo_codigo;
+  let prefijo = modulo.prefijo_codigo;
+  
+  if (subcategoriaId) {
+    const { data: subcategoria } = await supabase
+      .from('subcategorias')
+      .select('prefijo_codigo')
+      .eq('id', subcategoriaId)
+      .single();
+    
+    if (subcategoria?.prefijo_codigo) {
+      prefijo = prefijo + subcategoria.prefijo_codigo;
+    }
+  }
   
   const { count } = await supabase
     .from('productos')
@@ -23,6 +35,68 @@ export async function generateProductCode(moduloId: string): Promise<string> {
   
   const nextNumber = (count || 0) + 1;
   return `${prefijo}${String(nextNumber).padStart(3, '0')}`;
+}
+
+export async function updateProductCodesByModulo(moduloId: string, oldPrefijo: string, newPrefijo: string): Promise<void> {
+  if (oldPrefijo === newPrefijo) return;
+  
+  const { data: productos } = await supabase
+    .from('productos')
+    .select('id, codigo')
+    .eq('modulo_id', moduloId)
+    .is('subcategoria_id', null);
+  
+  if (productos && productos.length > 0) {
+    const updates = productos.map(p => ({
+      id: p.id,
+      codigo: newPrefijo + p.codigo.substring(oldPrefijo.length)
+    }));
+    
+    for (const update of updates) {
+      await supabase
+        .from('productos')
+        .update({ codigo: update.codigo })
+        .eq('id', update.id);
+    }
+  }
+}
+
+export async function updateProductCodesBySubcategoria(subcategoriaId: string, oldPrefijo: string, newPrefijo: string, moduloPrefijo: string): Promise<void> {
+  if (oldPrefijo === newPrefijo) return;
+  
+  const { data: subcategoria } = await supabase
+    .from('subcategorias')
+    .select('modulo_id')
+    .eq('id', subcategoriaId)
+    .single();
+  
+  if (!subcategoria) return;
+  
+  const { data: modulo } = await supabase
+    .from('modulos')
+    .select('prefijo_codigo')
+    .eq('id', subcategoria.modulo_id)
+    .single();
+  
+  const oldFullPrefijo = moduloPrefijo + oldPrefijo;
+  const newFullPrefijo = moduloPrefijo + newPrefijo;
+  
+  const { data: productos } = await supabase
+    .from('productos')
+    .select('id, codigo')
+    .eq('subcategoria_id', subcategoriaId);
+  
+  if (productos && productos.length > 0) {
+    for (const p of productos) {
+      if (p.codigo.startsWith(oldFullPrefijo)) {
+        const newCodigo = newFullPrefijo + p.codigo.substring(oldFullPrefijo.length);
+        await supabase
+          .from('productos')
+          .update({ codigo: newCodigo })
+          .eq('id', p.id);
+      }
+    }
+  }
 }
 
 export async function createModulo(nombre: string, prefijo_codigo: string): Promise<Modulo> {
@@ -36,10 +110,10 @@ export async function createModulo(nombre: string, prefijo_codigo: string): Prom
   return data;
 }
 
-export async function createSubcategoria(nombre: string, modulo_id: string): Promise<Subcategoria> {
+export async function createSubcategoria(nombre: string, modulo_id: string, prefijo_codigo?: string): Promise<Subcategoria> {
   const { data, error } = await supabase
     .from('subcategorias')
-    .insert({ nombre, modulo_id })
+    .insert({ nombre, modulo_id, prefijo_codigo: prefijo_codigo?.toUpperCase() || null })
     .select()
     .single();
   
@@ -59,6 +133,7 @@ export interface Subcategoria {
   id: string;
   modulo_id: string;
   nombre: string;
+  prefijo_codigo?: string | null;
   created_at: string;
 }
 

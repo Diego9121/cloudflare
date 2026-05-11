@@ -10,9 +10,10 @@ import { getOptimizedImageUrl } from '@/lib/imageUtils';
 interface ProductCardProps {
   product: Producto;
   subcategorias?: Subcategoria[];
+  subcategoriaActivaId?: string | null;
 }
 
-function ProductCardComponent({ product, subcategorias }: ProductCardProps) {
+function ProductCardComponent({ product, subcategorias, subcategoriaActivaId }: ProductCardProps) {
   const { updateQuantity, items } = useCart();
   const [mostrarControles, setMostrarControles] = useState(false);
   
@@ -99,7 +100,7 @@ function ProductCardComponent({ product, subcategorias }: ProductCardProps) {
           </Badge>
         )}
 
-        {product.subcategoria_id && (
+        {product.subcategoria_id && product.subcategoria_id !== subcategoriaActivaId && (
           <Badge variant="outline" className="absolute top-3 left-3 bg-white/95 border-gray-200 text-charcoal text-xs">
             {getSubcategoriaNombre(product.subcategoria_id)}
           </Badge>

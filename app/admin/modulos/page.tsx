@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase, Modulo, Subcategoria } from '@/lib/supabase';
+import { supabase, Modulo, Subcategoria, createSubcategoria, updateProductCodesBySubcategoria } from '@/lib/supabase';
 import { AdminProtected } from '@/components/admin-protected';
 import { ImageCropModal } from '@/components/ImageCropModal';
 
@@ -391,18 +391,42 @@ function SubcategoriaModal({ subcategoria, modulos, selectedModuloId, onClose, o
   const [form, setForm] = useState({
     nombre: subcategoria?.nombre || '',
     modulo_id: subcategoria?.modulo_id || selectedModuloId,
+    prefijo_codigo: subcategoria?.prefijo_codigo || '',
   });
   const [guardando, setGuardando] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!form.prefijo_codigo || form.prefijo_codigo.trim() === '') {
+      alert('El prefijo de código es obligatorio');
+      return;
+    }
+    
     setGuardando(true);
     
     try {
+      const selectedModulo = modulos.find((m: Modulo) => m.id === form.modulo_id);
+      const prefijoUpper = form.prefijo_codigo.toUpperCase().trim();
+      
       if (subcategoria) {
-        await supabase.from('subcategorias').update(form).eq('id', subcategoria.id);
+        const oldPrefijo = subcategoria.prefijo_codigo || '';
+        
+        await supabase.from('subcategorias').update({
+          nombre: form.nombre,
+          prefijo_codigo: prefijoUpper
+        }).eq('id', subcategoria.id);
+        
+        if (oldPrefijo !== prefijoUpper && selectedModulo) {
+          await updateProductCodesBySubcategoria(
+            subcategoria.id,
+            oldPrefijo,
+            prefijoUpper,
+            selectedModulo.prefijo_codigo
+          );
+        }
       } else {
-        await supabase.from('subcategorias').insert(form);
+        await createSubcategoria(form.nombre, form.modulo_id, prefijoUpper);
       }
       onSave();
       onClose();
@@ -440,6 +464,18 @@ function SubcategoriaModal({ subcategoria, modulos, selectedModuloId, onClose, o
                 <option key={m.id} value={m.id}>{m.nombre} ({m.prefijo_codigo})</option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Prefijo de Código *</label>
+            <input
+              type="text"
+              value={form.prefijo_codigo}
+              onChange={(e) => setForm({ ...form, prefijo_codigo: e.target.value.toUpperCase() })}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gold focus:border-gold"
+              placeholder="Ej: C (máx 4 caracteres)"
+              maxLength={4}
+              required
+            />
           </div>
           <div className="flex gap-4 pt-4">
             <button type="button" onClick={onClose} className="flex-1 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-100">Cancelar</button>

@@ -230,12 +230,13 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
     if (form.modulo_id && !product) {
       generateCodigo();
     }
-  }, [form.modulo_id]);
+  }, [form.modulo_id, form.subcategoria_id]);
 
   async function generateCodigo() {
     if (!form.modulo_id) return;
     try {
-      const nuevoCodigo = await generateProductCode(form.modulo_id);
+      const subcategoriaId = form.subcategoria_id || null;
+      const nuevoCodigo = await generateProductCode(form.modulo_id, subcategoriaId);
       setCodigo(nuevoCodigo);
     } catch (err) {
       console.error('Error generando código:', err);
