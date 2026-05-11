@@ -8,6 +8,7 @@ import { supabase, Modulo, Subcategoria } from '@/lib/supabase';
 import { TikTokBanner } from '@/components/tiktok-banner';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { ProductGrid } from '@/components/ProductGrid';
+import { useCart } from '@/components/cart-context';
 
 const WhatsAppButtonLazy = dynamic(() => import('@/components/whatsapp-button').then(mod => ({ default: mod.WhatsAppButton })), {
   ssr: false,
@@ -17,6 +18,7 @@ const WhatsAppButtonLazy = dynamic(() => import('@/components/whatsapp-button').
 export default function SubcategoriaPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const { items } = useCart();
   const moduloId = params.id as string;
   const subcategoriaId = searchParams.get('subcategoria');
   
@@ -65,13 +67,18 @@ export default function SubcategoriaPage() {
             </svg>
             <span className="font-medium">Volver</span>
           </Link>
-          <Link href="/carrito" className="relative flex items-center gap-2 px-4 py-2 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-charcoal">
+          <Link href="/carrito" className="relative flex items-center gap-2 px-5 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors text-white font-semibold uppercase shadow-md">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 01-8 0" />
             </svg>
-            <span className="font-medium text-charcoal hidden sm:inline">Carrito</span>
+            <span>MI PEDIDO</span>
+            {items.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-white text-red-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                {items.length}
+              </span>
+            )}
           </Link>
         </div>
       </header>

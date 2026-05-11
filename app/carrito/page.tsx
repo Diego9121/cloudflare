@@ -319,7 +319,7 @@ Después de este tiempo, los artículos volverán a estar disponibles.
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
           <div className="flex justify-between items-center">
             <span className="text-2xl font-bold text-charcoal">Total:</span>
-            <span className="text-3xl font-bold text-gold">{formatCurrency(getSubtotal())}</span>
+            <span className="text-3xl font-bold text-charcoal">{formatCurrency(getSubtotal())}</span>
           </div>
         </div>
 
@@ -333,9 +333,10 @@ Después de este tiempo, los artículos volverán a estar disponibles.
           </button>
         ) : (
           <form id="form-cotizacion" onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="mb-6 p-4 bg-gold/10 border border-gold/30 rounded-xl">
-              <p className="text-gold-dark font-semibold text-center text-sm md:text-base">
-                💰 IMPORTANTE: Debe adelantar el 50% del total de su cotización para asegurar su reserva
+            <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+              <p className="text-center">
+                <span className="text-red-600 font-bold uppercase">IMPORTANTE:</span>
+                <span className="text-black font-semibold uppercase"> (PARA ASEGURAR EL APARTADO DEBE REALIZAR UN ADELANTO MINIMO DE 50BS)</span>
               </p>
             </div>
 
@@ -370,7 +371,7 @@ Después de este tiempo, los artículos volverán a estar disponibles.
                   <label className="block text-sm font-medium text-charcoal mb-2">Departamento *</label>
                   <select
                     value={formData.departamento}
-                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value, provincia: '' })}
+                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gold focus:border-gold transition"
                     required
                   >
@@ -381,24 +382,20 @@ Después de este tiempo, los artículos volverán a estar disponibles.
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">Provincia *</label>
-                  <select
+                  <label className="block text-sm font-medium text-charcoal mb-2">Destino *</label>
+                  <input
+                    type="text"
                     value={formData.provincia}
                     onChange={(e) => setFormData({ ...formData, provincia: e.target.value })}
                     className="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-gold focus:border-gold transition"
+                    placeholder="Ej: Ciudad, Zona, Barrio..."
                     required
-                    disabled={!formData.departamento}
-                  >
-                    <option value="">Seleccionar...</option>
-                    {provincias.map(p => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">Notas / Dirección de envío</label>
+                <label className="block text-sm font-medium text-charcoal mb-2">Notas (opcional)</label>
                 <textarea
                   value={formData.notas}
                   onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
