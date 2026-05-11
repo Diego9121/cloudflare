@@ -31,7 +31,8 @@ export async function generateProductCode(moduloId: string, subcategoriaId?: str
   const { count } = await supabase
     .from('productos')
     .select('*', { count: 'exact', head: true })
-    .like('codigo', `${prefijo}%`);
+    .gte('codigo', `${prefijo}000`)
+    .lt('codigo', `${prefijo}999`);
   
   const nextNumber = (count || 0) + 1;
   return `${prefijo}${String(nextNumber).padStart(3, '0')}`;
