@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase, Modulo, Subcategoria } from '@/lib/supabase';
 import { AdminProtected } from '@/components/admin-protected';
+import { ImageCropModal } from '@/components/ImageCropModal';
 
 export default function ModulosAdmin() {
   const [modulos, setModulos] = useState<Modulo[]>([]);
@@ -211,14 +212,29 @@ function ModuloModal({ modulo, onClose, onSave }: { modulo: Modulo | null; onClo
   });
   const [uploading, setUploading] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
 
   const cloudName = 'dmkxj8sls';
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+      setShowCropModal(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setUploading(true);
+    setShowCropModal(false);
+
+    const file = new File([croppedBlob], 'modulo-image.jpg', { type: 'image/jpeg' });
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', 'joyeria_bella');
@@ -229,7 +245,6 @@ function ModuloModal({ modulo, onClose, onSave }: { modulo: Modulo | null; onClo
         body: formData,
       });
       const data = await res.json();
-      console.log('Cloudinary response:', data);
       if (data.error) {
         alert('Error: ' + data.error.message);
       } else {
@@ -354,6 +369,14 @@ function ModuloModal({ modulo, onClose, onSave }: { modulo: Modulo | null; onClo
           </div>
         </form>
       </div>
+
+      {showCropModal && imageToCrop && (
+        <ImageCropModal
+          imageSrc={imageToCrop}
+          onClose={() => { setShowCropModal(false); setImageToCrop(null); }}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

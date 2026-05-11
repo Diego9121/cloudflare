@@ -83,11 +83,11 @@ export function HeroCategories({ modulos }: HeroCategoriesProps) {
   }
 
   return (
-    <section className="relative overflow-hidden py-16 bg-white">
+    <section className="relative overflow-hidden py-8 bg-white">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-50/50" />
       
       <div className="relative max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center gap-3 mb-6">
             <div className="h-px w-12 bg-gradient-to-r from-transparent to-gold" />
             <span className="text-gold text-sm font-medium tracking-[0.3em] uppercase">Joyería Exclusiva</span>
@@ -98,6 +98,9 @@ export function HeroCategories({ modulos }: HeroCategoriesProps) {
           </h2>
           <p className="text-sm sm:text-base md:text-base lg:text-lg text-gray-500 max-w-xl mx-auto">
             Piezas únicas diseñadas para brillar en cada momento especial
+          </p>
+          <p className="text-sm sm:text-base font-semibold text-gold mt-3 tracking-wide">
+            TIENDA VIRTUAL LA PAZ - EL ALTO - BOLIVIA
           </p>
         </div>
 

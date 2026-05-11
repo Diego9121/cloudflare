@@ -106,34 +106,34 @@ function ProductCardComponent({ product, subcategorias }: ProductCardProps) {
         )}
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
-        <p className="text-xs text-gray-400 font-medium mb-3">{product.codigo}</p>
+      <div className="p-2 flex flex-col flex-1">
+        <p className="text-xs text-gray-500 font-medium mb-0">{product.codigo}</p>
         
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-1 mb-1">
           {tieneDescuento && (
             <span className="text-xs text-gray-400 line-through">
               {formatCurrency(product.precio)}
             </span>
           )}
-          <span className={`text-xl font-bold ${tieneDescuento ? 'text-red-500' : 'text-charcoal'}`}>
+          <span className={`text-base font-bold ${tieneDescuento ? 'text-red-500' : 'text-charcoal'}`}>
             {formatCurrency(precio)}
           </span>
         </div>
 
         {!estaAgotado ? (
           mostrarControles ? (
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-0.5 bg-gray-100 rounded p-0.5">
               <button
                 onClick={handleDecrement}
-                className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-charcoal bg-white hover:bg-green-500 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md hover:scale-110"
+                className="w-7 h-7 rounded flex items-center justify-center font-bold text-charcoal bg-white hover:bg-green-500 hover:text-white transition-all duration-200 text-sm"
               >
                 -
               </button>
-              <span className="w-8 text-center font-bold text-sm">{cantidad}</span>
+              <span className="w-5 text-center font-bold text-xs">{cantidad}</span>
               <button
                 onClick={handleIncrement}
                 disabled={isMaxStock}
-                className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:scale-110 ${
+                className={`w-7 h-7 rounded flex items-center justify-center font-bold transition-all duration-200 text-sm ${
                   isMaxStock
                     ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
                     : 'bg-white text-charcoal hover:bg-green-500 hover:text-white'
@@ -146,11 +146,8 @@ function ProductCardComponent({ product, subcategorias }: ProductCardProps) {
             <button
               onClick={handleAgregar}
               disabled={stockDisponible === 0}
-              className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-green-500 hover:to-green-600 text-white font-bold uppercase tracking-wide rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95"
+              className="w-full py-1.5 px-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-green-500 hover:to-green-600 text-white font-bold text-xs uppercase rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 active:scale-95"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
               AGREGAR AL PEDIDO
             </button>
           )
