@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Producto, Subcategoria } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
@@ -14,12 +14,21 @@ interface ProductCardProps {
 
 function ProductCardComponent({ product, subcategorias }: ProductCardProps) {
   const { updateQuantity, items } = useCart();
+  const [mostrarControles, setMostrarControles] = useState(false);
   
   const cantidad = items.find(i => i.productoId === product.id)?.cantidad || 0;
   const precio = product.precio_descuento || product.precio;
   const tieneDescuento = !!product.precio_descuento;
   const estaAgotado = product.stock === 0;
   const stockDisponible = product.stock;
+
+  useEffect(() => {
+    if (cantidad > 0) {
+      setMostrarControles(true);
+    } else {
+      setMostrarControles(false);
+    }
+  }, [cantidad]);
 
   const handleIncrement = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,7 +42,17 @@ function ProductCardComponent({ product, subcategorias }: ProductCardProps) {
     e.stopPropagation();
     if (cantidad > 0) {
       updateQuantity(product.id, cantidad - 1);
+      if (cantidad <= 1) {
+        setMostrarControles(false);
+      }
     }
+  };
+
+  const handleAgregar = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    updateQuantity(product.id, 1);
+    setMostrarControles(true);
   };
 
   const isMaxStock = cantidad >= stockDisponible;
@@ -88,8 +107,7 @@ function ProductCardComponent({ product, subcategorias }: ProductCardProps) {
       </div>
 
       <div className="p-4 flex flex-col flex-1">
-        <p className="text-xs text-gray-400 font-medium mb-1">{product.codigo}</p>
-        <h3 className="font-semibold text-charcoal line-clamp-2 mb-3 text-sm flex-1">{product.nombre}</h3>
+        <p className="text-xs text-gray-400 font-medium mb-3">{product.codigo}</p>
         
         <div className="flex items-center gap-2 mb-4">
           {tieneDescuento && (
@@ -103,33 +121,39 @@ function ProductCardComponent({ product, subcategorias }: ProductCardProps) {
         </div>
 
         {!estaAgotado ? (
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={handleDecrement}
-              disabled={cantidad === 0}
-              className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-charcoal transition-colors shadow-sm
-                ${cantidad === 0
-                  ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  : 'bg-white hover:bg-gold hover:text-white'
+          mostrarControles ? (
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={handleDecrement}
+                className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-charcoal bg-white hover:bg-green-500 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md hover:scale-110"
+              >
+                -
+              </button>
+              <span className="w-8 text-center font-bold text-sm">{cantidad}</span>
+              <button
+                onClick={handleIncrement}
+                disabled={isMaxStock}
+                className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold transition-all duration-200 shadow-sm hover:shadow-md hover:scale-110 ${
+                  isMaxStock
+                    ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                    : 'bg-white text-charcoal hover:bg-green-500 hover:text-white'
                 }`}
-            >
-              -
-            </button>
-            <span className="w-8 text-center font-bold text-sm">
-              {cantidad}
-            </span>
+              >
+                +
+              </button>
+            </div>
+          ) : (
             <button
-              onClick={handleIncrement}
-              disabled={isMaxStock}
-              className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-charcoal transition-colors shadow-sm
-                ${isMaxStock
-                  ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  : 'bg-white hover:bg-gold hover:text-white'
-                }`}
+              onClick={handleAgregar}
+              disabled={stockDisponible === 0}
+              className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-green-500 hover:to-green-600 text-white font-bold uppercase tracking-wide rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 active:scale-95"
             >
-              +
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              AGREGAR AL PEDIDO
             </button>
-          </div>
+          )
         ) : (
           <div className="text-center text-gray-400 text-sm py-2">
             Sin stock

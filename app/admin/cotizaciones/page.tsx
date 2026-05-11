@@ -54,32 +54,68 @@ export default function CotizacionesAdmin() {
     const cotizacion = cotizaciones.find(c => c.id === id);
     if (!cotizacion) return;
 
-    if (nuevoEstado === 'APROBADO' && tieneStockInsuficiente(cotizacion.productos)) {
-      const insuficiente = cotizacion.productos.filter(p => p.cantidad > getStockProducto(p.producto_id));
-      const mensaje = `Stock insuficiente:\n${insuficiente.map(p => `${p.codigo}: Solicitado ${p.cantidad}, Disponible ${getStockProducto(p.producto_id)}`).join('\n')}\n\n¿Desea aprobar de todos modos?`;
-      
-      if (!confirm(mensaje)) return;
-    }
-
     if (nuevoEstado === 'APROBADO') {
       for (const producto of cotizacion.productos) {
-        const stockActual = getStockProducto(producto.producto_id);
-        if (stockActual >= producto.cantidad) {
-          const nuevoStock = stockActual - producto.cantidad;
-          await supabase.from('productos').update({ stock: nuevoStock }).eq('id', producto.producto_id);
+        const { data: productoActual } = await supabase
+          .from('productos')
+          .select('stock')
+          .eq('id', producto.producto_id)
+          .single();
+
+        if (productoActual) {
+          await supabase
+            .from('productos')
+            .update({ stock: productoActual.stock - producto.cantidad })
+            .eq('id', producto.producto_id);
         }
       }
-      const productosRes = await supabase.from('productos').select('id, codigo, nombre, stock').order('codigo');
-      if (productosRes.data) setProductosStock(productosRes.data);
+    } else if (nuevoEstado === 'RECHAZADO') {
+      for (const producto of cotizacion.productos) {
+        const { data: productoActual } = await supabase
+          .from('productos')
+          .select('stock')
+          .eq('id', producto.producto_id)
+          .single();
+
+        if (productoActual) {
+          await supabase
+            .from('productos')
+            .update({ stock: productoActual.stock + producto.cantidad })
+            .eq('id', producto.producto_id);
+        }
+      }
     }
 
     await supabase.from('cotizaciones').update({ estado: nuevoEstado as any, updated_at: new Date().toISOString() }).eq('id', id);
+    const productosRes = await supabase.from('productos').select('id, codigo, nombre, stock').order('codigo');
+    if (productosRes.data) setProductosStock(productosRes.data);
     loadData();
   };
 
   const deleteCotizacion = async (id: string) => {
     if (!confirm('¿Eliminar esta cotización?')) return;
+
+    const cotizacion = cotizaciones.find(c => c.id === id);
+    if (cotizacion && cotizacion.estado === 'PENDIENTE') {
+      for (const producto of cotizacion.productos) {
+        const { data: productoActual } = await supabase
+          .from('productos')
+          .select('stock')
+          .eq('id', producto.producto_id)
+          .single();
+
+        if (productoActual) {
+          await supabase
+            .from('productos')
+            .update({ stock: productoActual.stock + producto.cantidad })
+            .eq('id', producto.producto_id);
+        }
+      }
+    }
+
     await supabase.from('cotizaciones').delete().eq('id', id);
+    const productosRes = await supabase.from('productos').select('id, codigo, nombre, stock').order('codigo');
+    if (productosRes.data) setProductosStock(productosRes.data);
     loadData();
   };
 

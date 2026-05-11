@@ -24,7 +24,7 @@ export default function ProductosAdmin() {
 
   async function loadData() {
     const [productosRes, modulosRes, subcategoriasRes] = await Promise.all([
-      supabase.from('productos').select('*').order('created_at', { ascending: false }),
+      supabase.from('productos').select('*').order('modulo_id', { ascending: true }).order('codigo', { ascending: true }),
       supabase.from('modulos').select('*').order('nombre'),
       supabase.from('subcategorias').select('*').order('nombre'),
     ]);
@@ -107,8 +107,8 @@ export default function ProductosAdmin() {
               <tr>
                 <th className="px-4 py-3 text-left w-24">Imagen</th>
                 <th className="px-4 py-3 text-left">Código</th>
-                <th className="px-4 py-3 text-left">Nombre</th>
                 <th className="px-4 py-3 text-left">Módulo</th>
+                <th className="px-4 py-3 text-left">Subcategoría</th>
                 <th className="px-4 py-3 text-center">Precio</th>
                 <th className="px-4 py-3 text-center">Stock</th>
                 <th className="px-4 py-3 text-center">Acciones</th>
@@ -129,8 +129,8 @@ export default function ProductosAdmin() {
                     )}
                   </td>
                   <td className="px-4 py-3 font-semibold text-gold">{product.codigo}</td>
-                  <td className="px-4 py-3">{product.nombre}</td>
                   <td className="px-4 py-3">{getModuloNombre(product.modulo_id)}</td>
+                  <td className="px-4 py-3">{getSubcategoriaNombre(product.subcategoria_id)}</td>
                   <td className="px-4 py-3 text-center font-semibold">
                     {product.precio_descuento ? (
                       <div>
@@ -209,7 +209,6 @@ interface ProductModalProps {
 
 function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpenNuevoModulo, onOpenNuevaSubcategoria }: ProductModalProps) {
   const [form, setForm] = useState({
-    nombre: product?.nombre || '',
     modulo_id: product?.modulo_id || '',
     subcategoria_id: product?.subcategoria_id || '',
     precio: product?.precio?.toString() || '',
@@ -282,7 +281,7 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
 
     const productoData = {
       codigo: product?.codigo || codigo,
-      nombre: form.nombre,
+      nombre: '',
       modulo_id: form.modulo_id,
       subcategoria_id: form.subcategoria_id || null,
       precio: precioNum,
@@ -362,18 +361,6 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
                 </div>
               </div>
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Producto</label>
-            <input
-              type="text"
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gold focus:border-gold"
-              placeholder="Ej: Aretes dorados con zirconias"
-              required
-            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

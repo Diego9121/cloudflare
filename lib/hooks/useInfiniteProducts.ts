@@ -40,7 +40,7 @@ export function useInfiniteProducts({
         .select('*', { count: 'exact' })
         .eq('modulo_id', moduloId)
         .eq('activo', true)
-        .order('created_at', { ascending: false })
+        .order('codigo', { ascending: true })
         .range(pageNum * pageSize, (pageNum + 1) * pageSize - 1);
 
       if (subcategoriaId) {

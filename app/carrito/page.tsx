@@ -120,6 +120,35 @@ export default function CarritoPage() {
       subcategoria_id: p.subcategoria_id,
     }));
 
+    for (const prod of productosCotizacion) {
+      const { data: productoActual } = await supabase
+        .from('productos')
+        .select('stock')
+        .eq('id', prod.producto_id)
+        .single();
+
+      if (!productoActual || productoActual.stock < prod.cantidad) {
+        alert(`Stock insuficiente para ${prod.codigo}. Stock disponible: ${productoActual?.stock || 0}`);
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    for (const prod of productosCotizacion) {
+      const { data: productoActual } = await supabase
+        .from('productos')
+        .select('stock')
+        .eq('id', prod.producto_id)
+        .single();
+
+      if (productoActual) {
+        await supabase
+          .from('productos')
+          .update({ stock: productoActual.stock - prod.cantidad })
+          .eq('id', prod.producto_id);
+      }
+    }
+
     const { error } = await supabase.from('cotizaciones').insert({
       cliente_nombre: formData.nombre,
       cliente_celular: formData.celular,
@@ -189,7 +218,7 @@ PRODUCTOS
     mensajeTexto += `\n────────────────────
         💰 TOTAL: ${formatPrecio(total)}
 ────────────────────
-⏰ IMPORTANTE: Esta cotización tiene validez de 2 horas.
+⏰ IMPORTANTE: Esta cotización tiene validez de 15 Minutos.
 Después de este tiempo, los artículos volverán a estar disponibles.
 ────────────────────`;
 
@@ -242,11 +271,11 @@ Después de este tiempo, los artículos volverán a estar disponibles.
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 py-4 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 flex justify-between items-center">
-          <Link href="/" className="inline-flex items-center gap-2 text-charcoal hover:text-gold transition-colors">
+          <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold uppercase rounded-lg transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="font-medium">Continuar comprando</span>
+            <span>Continuar Comprando</span>
           </Link>
           <span className="bg-gold text-white px-4 py-2 rounded-full font-semibold text-sm">
             {totalItems} producto{totalItems !== 1 ? 's' : ''}
@@ -271,8 +300,8 @@ Después de este tiempo, los artículos volverán a estar disponibles.
             return (
               <div key={producto.id} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center">
                 <div className="flex-1 min-w-[200px]">
-                  <span className="text-gold font-bold text-sm">{producto.codigo}</span>
-                  <h3 className="font-semibold text-lg text-charcoal mt-1">{producto.nombre}</h3>
+                  <span className="text-charcoal font-semibold text-sm uppercase">{producto.modulo_nombre}{producto.subcategoria_nombre ? ` (${producto.subcategoria_nombre})` : ''}</span>
+                  <span className="text-gold font-bold text-sm block mt-1">{producto.codigo}</span>
                   <div className="flex items-center gap-3 mt-2">
                     {producto.precio_descuento ? (
                       <>
@@ -285,32 +314,10 @@ Después de este tiempo, los artículos volverán a estar disponibles.
                     <span className="text-gray-400 text-sm">c/u</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => updateItemQuantity(producto.id, -1)} 
-                    className="bg-gray-100 w-10 h-10 rounded-full hover:bg-gold hover:text-white transition-colors text-lg font-bold"
-                  >
-                    -
-                  </button>
-                  <span className="font-bold text-xl w-8 text-center">{cantidad}</span>
-                  <button 
-                    onClick={() => updateItemQuantity(producto.id, 1)} 
-                    className="bg-gray-100 w-10 h-10 rounded-full hover:bg-gold hover:text-white transition-colors text-lg font-bold"
-                  >
-                    +
-                  </button>
-                </div>
+                <span className="font-bold text-xl text-charcoal">x{cantidad}</span>
                 <div className="text-right min-w-[100px]">
                   <span className="text-xl font-bold text-charcoal">{formatCurrency(subtotal)}</span>
                 </div>
-                <button 
-                  onClick={() => removeFromCart(producto.id)} 
-                  className="text-gray-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-full transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
             );
           })}

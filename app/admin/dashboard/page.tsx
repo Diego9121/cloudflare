@@ -160,8 +160,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {productosAlerta.map(producto => (
                 <div key={producto.id} className={`bg-white rounded-lg p-3 shadow-sm ${producto.stock === 0 ? 'border-2 border-red-300' : 'border border-yellow-200'}`}>
-                  <p className="font-bold text-sm text-charcoal truncate">{producto.nombre}</p>
-                  <p className="text-xs text-gold">{producto.codigo}</p>
+                  <p className="text-xs text-gold font-bold">{producto.codigo}</p>
                   <p className={`text-lg font-bold mt-1 ${producto.stock === 0 ? 'text-red-500' : 'text-yellow-600'}`}>
                     {producto.stock === 0 ? 'AGOTADO' : `Stock: ${producto.stock}`}
                   </p>
