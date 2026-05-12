@@ -1,9 +1,8 @@
 'use client';
 
-import { useCallback } from 'react';
 import { Producto, Subcategoria } from '@/lib/supabase';
 import { ProductCard } from './ProductCard';
-import { useInfiniteProducts, useIntersectionObserver } from '@/lib/hooks/useInfiniteProducts';
+import { useInfiniteProducts } from '@/lib/hooks/useInfiniteProducts';
 
 interface ProductGridProps {
   moduloId: string;
@@ -17,14 +16,6 @@ export function ProductGrid({ moduloId, subcategoriaId, subcategorias }: Product
     subcategoriaId,
     pageSize: 24,
   });
-
-  const handleLoadMore = useCallback(() => {
-    if (hasMore && !loadingMore) {
-      loadMore();
-    }
-  }, [hasMore, loadingMore, loadMore]);
-
-  const loadMoreRef = useIntersectionObserver(handleLoadMore, { threshold: 0.1 });
 
   if (loading) {
     return (
@@ -66,13 +57,14 @@ export function ProductGrid({ moduloId, subcategoriaId, subcategorias }: Product
       </div>
 
       {hasMore && (
-        <div ref={loadMoreRef} className="mt-8 flex justify-center">
-          {loadingMore && (
-            <div className="flex items-center gap-3 text-charcoal">
-              <div className="w-8 h-8 rounded-full border-2 border-gold border-t-transparent animate-spin" />
-              <span>Cargando más productos...</span>
-            </div>
-          )}
+        <div className="mt-10 flex justify-center">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="px-10 py-4 bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+          >
+            {loadingMore ? 'CARGANDO...' : 'VER MÁS PRODUCTOS'}
+          </button>
         </div>
       )}
 
