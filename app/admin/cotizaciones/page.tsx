@@ -134,7 +134,13 @@ export default function CotizacionesAdmin() {
   };
 
   const contactByWhatsApp = (celular: string) => {
-    window.open(`https://wa.me/${celular.replace(/\s/g, '')}`, '_blank');
+    const link = document.createElement('a');
+    link.href = `https://wa.me/${celular.replace(/\s/g, '')}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
