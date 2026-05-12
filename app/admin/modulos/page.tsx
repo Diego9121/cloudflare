@@ -215,7 +215,7 @@ function ModuloModal({ modulo, onClose, onSave }: { modulo: Modulo | null; onClo
   const [showCropModal, setShowCropModal] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
 
-  const cloudName = 'dmkxj8sls';
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dmkxj8sls';
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -19,37 +19,96 @@ export default function ProductosAdmin() {
   const [showNuevoModuloModal, setShowNuevoModuloModal] = useState(false);
   const [showNuevaSubcategoriaModal, setShowNuevaSubcategoriaModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
   const productsPerPage = 30;
 
   useEffect(() => {
-    loadData();
+    loadTotalCount();
+    loadModulosYSubcategorias();
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [filterAgotados]);
 
-  async function loadData() {
-    const [productosRes, modulosRes, subcategoriasRes] = await Promise.all([
-      supabase.from('productos').select('*').order('modulo_id', { ascending: true }).order('codigo', { ascending: true }),
+  useEffect(() => {
+    if (searchTerm) {
+      loadAllProductsForSearch();
+    } else {
+      loadProductsPage(currentPage);
+    }
+  }, [searchTerm]);
+
+  async function loadAllProductsForSearch() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('productos')
+      .select('*')
+      .order('modulo_id', { ascending: true })
+      .order('codigo', { ascending: true });
+    if (data) setProductos(data);
+    setLoading(false);
+  }
+
+  async function loadTotalCount() {
+    let query = supabase.from('productos').select('*', { count: 'exact', head: true });
+    if (filterAgotados) {
+      query = query.eq('stock', 0);
+    }
+    const { count } = await query;
+    setTotalProducts(count || 0);
+  }
+
+  async function loadProductsPage(page: number) {
+    setLoading(true);
+    const from = (page - 1) * productsPerPage;
+    const to = from + productsPerPage - 1;
+    
+    let query = supabase
+      .from('productos')
+      .select('*')
+      .order('modulo_id', { ascending: true })
+      .order('codigo', { ascending: true })
+      .range(from, to);
+    
+    if (filterAgotados) {
+      query = query.eq('stock', 0);
+    }
+    
+    const { data } = await query;
+    if (data) setProductos(data);
+    setLoading(false);
+  }
+
+  async function loadModulosYSubcategorias() {
+    const [modulosRes, subcategoriasRes] = await Promise.all([
       supabase.from('modulos').select('*').order('nombre'),
       supabase.from('subcategorias').select('*').order('nombre'),
     ]);
-    if (productosRes.data) setProductos(productosRes.data);
     if (modulosRes.data) setModulos(modulosRes.data);
     if (subcategoriasRes.data) setSubcategorias(subcategoriasRes.data);
-    setLoading(false);
   }
+
+  useEffect(() => {
+    if (!searchTerm) {
+      loadProductsPage(currentPage);
+    }
+  }, [currentPage, filterAgotados, searchTerm]);
 
   const getModuloNombre = (id: string) => modulos.find(m => m.id === id)?.nombre || '';
   const getSubcategoriaNombre = (id: string | null) => id ? subcategorias.find(s => s.id === id)?.nombre || '' : '';
 
-  const filteredProducts = filterAgotados ? productos.filter(p => p.stock === 0) : productos;
+  const filteredProducts = searchTerm 
+    ? productos.filter(p => 
+        p.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : productos;
   
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const totalPages = searchTerm ? 1 : Math.ceil(totalProducts / productsPerPage);
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -99,6 +158,25 @@ export default function ProductosAdmin() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
+          <div className="flex gap-2 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <input
+                type="text"
+                placeholder="Buscar por código..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
           <button
             onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
             className="px-4 py-2 rounded-lg border-2 border-charcoal text-charcoal bg-white hover:bg-charcoal hover:text-white transition text-sm font-semibold"
@@ -131,7 +209,7 @@ export default function ProductosAdmin() {
               </tr>
             </thead>
             <tbody>
-              {currentProducts.map(product => (
+              {productos.map(product => (
                 <tr key={product.id} className={`border-b hover:bg-gray-50 ${!product.activo ? 'bg-gray-100 opacity-60' : ''}`}>
                   <td className="px-4 py-3">
                     {product.imagen_url ? (
@@ -219,7 +297,7 @@ export default function ProductosAdmin() {
 
         {totalPages > 0 && (
           <p className="text-center text-sm text-gray-500 mt-4">
-            Mostrando {indexOfFirstProduct + 1} - {Math.min(indexOfLastProduct, filteredProducts.length)} de {filteredProducts.length} productos
+            Mostrando {indexOfFirstProduct + 1} - {Math.min(indexOfLastProduct, totalProducts)} de {totalProducts} productos
           </p>
         )}
       </main>
@@ -300,7 +378,7 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
     }
   }
 
-  const cloudName = 'dmkxj8sls';
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dmkxj8sls';
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -642,6 +720,7 @@ interface NuevaSubcategoriaModalProps {
 function NuevaSubcategoriaModal({ modulos, onClose, onSave }: NuevaSubcategoriaModalProps) {
   const [nombre, setNombre] = useState('');
   const [moduloId, setModuloId] = useState(modulos[0]?.id || '');
+  const [prefijo, setPrefijo] = useState('');
   const [guardando, setGuardando] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -649,7 +728,7 @@ function NuevaSubcategoriaModal({ modulos, onClose, onSave }: NuevaSubcategoriaM
     if (!nombre || !moduloId) return;
     setGuardando(true);
     try {
-      const nuevaSubcategoria = await createSubcategoria(nombre, moduloId);
+      const nuevaSubcategoria = await createSubcategoria(nombre, moduloId, prefijo || undefined);
       onSave(nuevaSubcategoria);
     } catch (err) {
       alert('Error al crear subcategoría');
@@ -685,6 +764,17 @@ function NuevaSubcategoriaModal({ modulos, onClose, onSave }: NuevaSubcategoriaM
                 <option key={m.id} value={m.id}>{m.nombre}</option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Prefijo de Código (opcional)</label>
+            <input
+              type="text"
+              value={prefijo}
+              onChange={(e) => setPrefijo(e.target.value.toUpperCase())}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gold focus:border-gold"
+              placeholder="Ej: C"
+              maxLength={3}
+            />
           </div>
           <div className="flex gap-4 pt-2">
             <button type="button" onClick={onClose} className="flex-1 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-100">Cancelar</button>

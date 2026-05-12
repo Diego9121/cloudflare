@@ -18,7 +18,7 @@ const WhatsAppButtonLazy = dynamic(() => import('@/components/whatsapp-button').
 export default function SubcategoriaPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const { items } = useCart();
+  const { items, totalItems, cartAnimation } = useCart();
   const moduloId = params.id as string;
   const subcategoriaId = searchParams.get('subcategoria');
   
@@ -74,9 +74,11 @@ export default function SubcategoriaPage() {
               <path d="M16 10a4 4 0 01-8 0" />
             </svg>
             <span>MI PEDIDO</span>
-            {items.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-white text-red-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                {items.length}
+            {totalItems > 0 && (
+              <span className={`absolute -top-2 -right-2 bg-white text-red-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                cartAnimation ? 'scale-150 bg-green-500 text-white' : ''
+              }`}>
+                {totalItems}
               </span>
             )}
           </Link>

@@ -98,13 +98,42 @@ export default function CarritoPage() {
     }
   };
 
-  const getSubtotal = () => {
-    return productos.reduce((sum, p) => {
-      const cantidad = items.find(i => i.productoId === p.id)?.cantidad || 0;
-      const precio = p.precio_descuento || p.precio;
-      return sum + (precio * cantidad);
-    }, 0);
-  };
+  function roundToTwoDecimals(value: number): number {
+      return Math.round(value * 100) / 100;
+    }
+
+    function roundTotalGeneral(total: number): number {
+      const cents = Math.round((total * 100) % 100);
+      const validCents = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
+      
+      let rounded: number;
+      
+      if (validCents.includes(cents)) {
+        rounded = total;
+      } else {
+        rounded = Math.ceil(total * 10) / 10;
+      }
+      
+      return roundToTwoDecimals(rounded);
+    }
+
+    const getSubtotal = () => {
+      const total = productos.reduce((sum, p) => {
+        const cantidad = items.find(i => i.productoId === p.id)?.cantidad || 0;
+        const precio = p.precio_descuento || p.precio;
+        const subtotal = roundToTwoDecimals(precio * cantidad);
+        return sum + subtotal;
+      }, 0);
+      return roundToTwoDecimals(total);
+    };
+
+    const getTotalOriginal = () => {
+      return productos.reduce((sum, p) => {
+        const cantidad = items.find(i => i.productoId === p.id)?.cantidad || 0;
+        const precio = p.precio_descuento || p.precio;
+        return sum + (precio * cantidad);
+      }, 0);
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,6 +195,7 @@ export default function CarritoPage() {
     }
 
     const total = getSubtotal();
+    const totalOriginal = getTotalOriginal();
     
     const groupedByModulo = productos.reduce((acc, p) => {
       const moduloKey = p.modulo_id;
@@ -178,7 +208,7 @@ export default function CarritoPage() {
       }
       const cantidad = items.find(i => i.productoId === p.id)?.cantidad || 0;
       const precio = p.precio_descuento || p.precio;
-      const subtotalProducto = precio * cantidad;
+      const subtotalProducto = roundToTwoDecimals(precio * cantidad);
       acc[moduloKey].productos.push({
         codigo: p.codigo,
         cantidad,
@@ -188,6 +218,8 @@ export default function CarritoPage() {
       acc[moduloKey].subtotal += subtotalProducto;
       return acc;
     }, {} as Record<string, { nombre: string; productos: { codigo: string; cantidad: number; subtotal: number; subcategoria: string }[]; subtotal: number }>);
+
+    const totalRounded = roundTotalGeneral(totalOriginal);
 
 const formatPrecio = (precio: number) => `${precio.toFixed(2)} Bs`;
 
@@ -216,7 +248,7 @@ PRODUCTOS
     });
 
     mensajeTexto += `\n────────────────────
-        💰 TOTAL: ${formatPrecio(total)}
+        💰 TOTAL: ${formatPrecio(totalRounded)}
 ────────────────────
 ⏰ IMPORTANTE: Esta cotización tiene validez de 15 Minutos.
 Después de este tiempo, los artículos volverán a estar disponibles.
@@ -295,7 +327,7 @@ Después de este tiempo, los artículos volverán a estar disponibles.
           {productos.map(producto => {
             const cantidad = items.find(i => i.productoId === producto.id)?.cantidad || 0;
             const precio = producto.precio_descuento || producto.precio;
-            const subtotal = precio * cantidad;
+            const subtotal = roundToTwoDecimals(precio * cantidad);
 
             return (
               <div key={producto.id} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-wrap gap-4 items-center">
@@ -326,7 +358,7 @@ Después de este tiempo, los artículos volverán a estar disponibles.
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
           <div className="flex justify-between items-center">
             <span className="text-2xl font-bold text-charcoal">Total:</span>
-            <span className="text-3xl font-bold text-charcoal">{formatCurrency(getSubtotal())}</span>
+            <span className="text-3xl font-bold text-charcoal">{formatCurrency(roundTotalGeneral(getTotalOriginal()))}</span>
           </div>
         </div>
 

@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Error: Falta configuración de Supabase en las variables de entorno');
+}
+
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
 
 export async function generateProductCode(moduloId: string, subcategoriaId?: string | null): Promise<string> {
   const { data: modulo } = await supabase

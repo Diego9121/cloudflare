@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCart } from "./cart-context";
 
 export function Header() {
-  const { totalItems } = useCart();
+  const { totalItems, cartAnimation } = useCart();
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
@@ -40,7 +40,9 @@ export function Header() {
               </svg>
               <span className="font-medium text-charcoal hidden sm:inline">Carrito</span>
               {totalItems > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-gold text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-sm">
+                <span className={`absolute -top-1.5 -right-1.5 bg-gold text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-sm transition-all duration-300 ${
+                  cartAnimation ? 'scale-150 bg-green-500' : ''
+                }`}>
                   {totalItems}
                 </span>
               )}
