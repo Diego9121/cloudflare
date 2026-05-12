@@ -18,10 +18,16 @@ export default function ProductosAdmin() {
   const [filterAgotados, setFilterAgotados] = useState(false);
   const [showNuevoModuloModal, setShowNuevoModuloModal] = useState(false);
   const [showNuevaSubcategoriaModal, setShowNuevaSubcategoriaModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 30;
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterAgotados]);
 
   async function loadData() {
     const [productosRes, modulosRes, subcategoriasRes] = await Promise.all([
@@ -39,6 +45,15 @@ export default function ProductosAdmin() {
   const getSubcategoriaNombre = (id: string | null) => id ? subcategorias.find(s => s.id === id)?.nombre || '' : '';
 
   const filteredProducts = filterAgotados ? productos.filter(p => p.stock === 0) : productos;
+  
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const deleteProduct = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
@@ -116,7 +131,7 @@ export default function ProductosAdmin() {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map(product => (
+              {currentProducts.map(product => (
                 <tr key={product.id} className={`border-b hover:bg-gray-50 ${!product.activo ? 'bg-gray-100 opacity-60' : ''}`}>
                   <td className="px-4 py-3">
                     {product.imagen_url ? (
@@ -165,6 +180,48 @@ export default function ProductosAdmin() {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-3">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              Anterior
+            </button>
+            
+            <div className="flex items-center gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-blue-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+
+        {totalPages > 0 && (
+          <p className="text-center text-sm text-gray-500 mt-4">
+            Mostrando {indexOfFirstProduct + 1} - {Math.min(indexOfLastProduct, filteredProducts.length)} de {filteredProducts.length} productos
+          </p>
+        )}
       </main>
 
       {showProductModal && (

@@ -57,11 +57,11 @@ export function ProductGrid({ moduloId, subcategoriaId, subcategorias }: Product
       </div>
 
       {hasMore && (
-        <div className="mt-10 flex justify-center">
+        <div className="mt-6 flex justify-center">
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="px-10 py-4 bg-blue-500 hover:bg-blue-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+            className="py-2 px-5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50"
           >
             {loadingMore ? 'CARGANDO...' : 'VER MÁS PRODUCTOS'}
           </button>
