@@ -117,12 +117,13 @@ export default function ProductosAdmin() {
   const deleteProduct = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
     await supabase.from('productos').delete().eq('id', id);
-    loadData();
+    loadTotalCount();
+    loadProductsPage(currentPage);
   };
 
   const toggleActivo = async (product: Producto) => {
     await supabase.from('productos').update({ activo: !product.activo }).eq('id', product.id);
-    loadData();
+    loadProductsPage(currentPage);
   };
 
   const handleModuloCreado = (nuevoModulo: Modulo) => {
