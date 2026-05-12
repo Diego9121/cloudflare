@@ -309,7 +309,7 @@ export default function ProductosAdmin() {
           modulos={modulos}
           subcategorias={subcategorias}
           onClose={() => { setShowProductModal(false); setEditingProduct(null); }}
-          onSave={loadData}
+          onSave={() => { loadTotalCount(); loadProductsPage(currentPage); }}
           onOpenNuevoModulo={() => setShowNuevoModuloModal(true)}
           onOpenNuevaSubcategoria={() => setShowNuevaSubcategoriaModal(true)}
         />
