@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase, Modulo, Subcategoria, createSubcategoria, updateProductCodesBySubcategoria } from '@/lib/supabase';
+import { supabase, Modulo, Subcategoria, updateProductCodesBySubcategoria } from '@/lib/supabase';
 import { AdminProtected } from '@/components/admin-protected';
 import { ImageCropModal } from '@/components/ImageCropModal';
 
@@ -23,11 +23,13 @@ export default function ModulosAdmin() {
 
   async function loadData() {
     const [modulosRes, subcategoriasRes] = await Promise.all([
-      supabase.from('modulos').select('*').order('nombre'),
-      supabase.from('subcategorias').select('*').order('nombre'),
+      fetch('/api/admin/modulos?tipo=modulos'),
+      fetch('/api/admin/modulos?tipo=subcategorias'),
     ]);
-    if (modulosRes.data) setModulos(modulosRes.data);
-    if (subcategoriasRes.data) setSubcategorias(subcategoriasRes.data);
+    const modulosData = await modulosRes.json();
+    const subcategoriasData = await subcategoriasRes.json();
+    if (modulosData.data) setModulos(modulosData.data);
+    if (subcategoriasData.data) setSubcategorias(subcategoriasData.data);
     setLoading(false);
   }
 
@@ -37,14 +39,13 @@ export default function ModulosAdmin() {
 
   const deleteModulo = async (id: string) => {
     if (!confirm('¿Eliminar este módulo? Las subcategorías asociadas también se eliminarán.')) return;
-    await supabase.from('subcategorias').delete().eq('modulo_id', id);
-    await supabase.from('modulos').delete().eq('id', id);
+    await fetch(`/api/admin/modulos?id=${id}&tipo=modulo`, { method: 'DELETE' });
     loadData();
   };
 
   const deleteSubcategoria = async (id: string) => {
     if (!confirm('¿Eliminar esta subcategoría?')) return;
-    await supabase.from('subcategorias').delete().eq('id', id);
+    await fetch(`/api/admin/modulos?id=${id}&tipo=subcategoria`, { method: 'DELETE' });
     loadData();
   };
 
@@ -268,9 +269,17 @@ function ModuloModal({ modulo, onClose, onSave }: { modulo: Modulo | null; onClo
 
     try {
       if (modulo) {
-        await supabase.from('modulos').update(data).eq('id', modulo.id);
+        await fetch('/api/admin/modulos', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipo: 'modulo', id: modulo.id, ...data }),
+        });
       } else {
-        await supabase.from('modulos').insert(data);
+        await fetch('/api/admin/modulos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipo: 'modulo', ...data }),
+        });
       }
       onSave();
       onClose();
@@ -412,10 +421,11 @@ function SubcategoriaModal({ subcategoria, modulos, selectedModuloId, onClose, o
       if (subcategoria) {
         const oldPrefijo = subcategoria.prefijo_codigo || '';
         
-        await supabase.from('subcategorias').update({
-          nombre: form.nombre,
-          prefijo_codigo: prefijoUpper
-        }).eq('id', subcategoria.id);
+        await fetch('/api/admin/modulos', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipo: 'subcategoria', id: subcategoria.id, nombre: form.nombre, prefijo_codigo: prefijoUpper }),
+        });
         
         if (oldPrefijo !== prefijoUpper && selectedModulo) {
           await updateProductCodesBySubcategoria(
@@ -426,7 +436,11 @@ function SubcategoriaModal({ subcategoria, modulos, selectedModuloId, onClose, o
           );
         }
       } else {
-        await createSubcategoria(form.nombre, form.modulo_id, prefijoUpper);
+        await fetch('/api/admin/modulos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipo: 'subcategoria', nombre: form.nombre, modulo_id: form.modulo_id, prefijo_codigo: prefijoUpper }),
+        });
       }
       onSave();
       onClose();

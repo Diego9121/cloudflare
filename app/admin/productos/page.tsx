@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase, Producto, Modulo, Subcategoria, generateProductCode, createModulo, createSubcategoria } from '@/lib/supabase';
+import { supabase, Producto, Modulo, Subcategoria, generateProductCode } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/constants';
 import { AdminProtected } from '@/components/admin-protected';
 import { ImageCropModal } from '@/components/ImageCropModal';
@@ -44,54 +44,41 @@ export default function ProductosAdmin() {
   }, [currentPage, filterAgotados, filterModulo, filterSubcategoria]);
 
   async function loadTotalCount() {
-    let query = supabase.from('productos').select('*', { count: 'exact', head: true });
-    if (filterAgotados) {
-      query = query.eq('stock', 0);
-    }
-    if (filterModulo) {
-      query = query.eq('modulo_id', filterModulo);
-    }
-    if (filterSubcategoria) {
-      query = query.eq('subcategoria_id', filterSubcategoria);
-    }
-    const { count } = await query;
-    setTotalProducts(count || 0);
+    const params = new URLSearchParams();
+    params.set('limit', '1');
+    if (filterAgotados) params.set('agotados', 'true');
+    if (filterModulo) params.set('modulo', filterModulo);
+    if (filterSubcategoria) params.set('subcategoria', filterSubcategoria);
+    
+    const res = await fetch(`/api/admin/productos?${params}`);
+    const data = await res.json();
+    setTotalProducts(data.total || 0);
   }
 
   async function loadProductsPage(page: number) {
     setLoading(true);
-    const from = (page - 1) * productsPerPage;
-    const to = from + productsPerPage - 1;
+    const params = new URLSearchParams();
+    params.set('page', page.toString());
+    params.set('limit', productsPerPage.toString());
+    if (filterAgotados) params.set('agotados', 'true');
+    if (filterModulo) params.set('modulo', filterModulo);
+    if (filterSubcategoria) params.set('subcategoria', filterSubcategoria);
     
-    let query = supabase
-      .from('productos')
-      .select('*')
-      .order('modulo_id', { ascending: true })
-      .order('codigo', { ascending: true })
-      .range(from, to);
-    
-    if (filterAgotados) {
-      query = query.eq('stock', 0);
-    }
-    if (filterModulo) {
-      query = query.eq('modulo_id', filterModulo);
-    }
-    if (filterSubcategoria) {
-      query = query.eq('subcategoria_id', filterSubcategoria);
-    }
-    
-    const { data } = await query;
-    if (data) setProductos(data);
+    const res = await fetch(`/api/admin/productos?${params}`);
+    const data = await res.json();
+    if (data.productos) setProductos(data.productos);
     setLoading(false);
   }
 
   async function loadModulosYSubcategorias() {
     const [modulosRes, subcategoriasRes] = await Promise.all([
-      supabase.from('modulos').select('*').order('nombre'),
-      supabase.from('subcategorias').select('*').order('nombre'),
+      fetch('/api/admin/modulos?tipo=modulos'),
+      fetch('/api/admin/modulos?tipo=subcategorias'),
     ]);
-    if (modulosRes.data) setModulos(modulosRes.data);
-    if (subcategoriasRes.data) setSubcategorias(subcategoriasRes.data);
+    const modulosData = await modulosRes.json();
+    const subcategoriasData = await subcategoriasRes.json();
+    if (modulosData.data) setModulos(modulosData.data);
+    if (subcategoriasData.data) setSubcategorias(subcategoriasData.data);
   }
 
   const getModuloNombre = (id: string) => modulos.find(m => m.id === id)?.nombre || '';
@@ -107,13 +94,17 @@ export default function ProductosAdmin() {
 
   const deleteProduct = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-    await supabase.from('productos').delete().eq('id', id);
+    await fetch(`/api/admin/productos?id=${id}`, { method: 'DELETE' });
     loadTotalCount();
     loadProductsPage(currentPage);
   };
 
   const toggleActivo = async (product: Producto) => {
-    await supabase.from('productos').update({ activo: !product.activo }).eq('id', product.id);
+    await fetch('/api/admin/productos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: product.id, activo: !product.activo }),
+    });
     loadProductsPage(currentPage);
   };
 
@@ -458,9 +449,17 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
 
     try {
       if (product) {
-        await supabase.from('productos').update(productoData).eq('id', product.id);
+        await fetch('/api/admin/productos', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: product.id, ...productoData }),
+        });
       } else {
-        await supabase.from('productos').insert(productoData);
+        await fetch('/api/admin/productos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productoData),
+        });
       }
       onSave();
       onClose();
@@ -677,8 +676,13 @@ function NuevoModuloModal({ onClose, onSave }: NuevoModuloModalProps) {
     if (!nombre || !prefijo) return;
     setGuardando(true);
     try {
-      const nuevoModulo = await createModulo(nombre, prefijo);
-      onSave(nuevoModulo);
+      const res = await fetch('/api/admin/modulos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo: 'modulo', nombre, prefijo_codigo: prefijo }),
+      });
+      const data = await res.json();
+      if (data.success) onSave(data.data);
     } catch (err) {
       alert('Error al crear módulo');
     }
@@ -742,8 +746,13 @@ function NuevaSubcategoriaModal({ modulos, onClose, onSave }: NuevaSubcategoriaM
     if (!nombre || !moduloId) return;
     setGuardando(true);
     try {
-      const nuevaSubcategoria = await createSubcategoria(nombre, moduloId, prefijo || undefined);
-      onSave(nuevaSubcategoria);
+      const res = await fetch('/api/admin/modulos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo: 'subcategoria', nombre, modulo_id: moduloId, prefijo_codigo: prefijo || null }),
+      });
+      const data = await res.json();
+      if (data.success) onSave(data.data);
     } catch (err) {
       alert('Error al crear subcategoría');
     }

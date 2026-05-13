@@ -26,10 +26,11 @@ export default function CotizacionesAdmin() {
 
   async function loadData() {
     const [cotizacionesRes, productosRes] = await Promise.all([
-      supabase.from('cotizaciones').select('*').order('created_at', { ascending: false }),
+      fetch('/api/admin/cotizaciones'),
       supabase.from('productos').select('id, codigo, nombre, stock').order('codigo'),
     ]);
-    if (cotizacionesRes.data) setCotizaciones(cotizacionesRes.data);
+    const cotizacionesData = await cotizacionesRes.json();
+    if (cotizacionesData.cotizaciones) setCotizaciones(cotizacionesData.cotizaciones);
     if (productosRes.data) setProductosStock(productosRes.data);
     setLoading(false);
   }
@@ -54,39 +55,14 @@ export default function CotizacionesAdmin() {
     const cotizacion = cotizaciones.find(c => c.id === id);
     if (!cotizacion) return;
 
-    if (nuevoEstado === 'APROBADO') {
-      for (const producto of cotizacion.productos) {
-        const { data: productoActual } = await supabase
-          .from('productos')
-          .select('stock')
-          .eq('id', producto.producto_id)
-          .single();
+    const actualizarStock = nuevoEstado === 'APROBADO' || nuevoEstado === 'RECHAZADO';
 
-        if (productoActual) {
-          await supabase
-            .from('productos')
-            .update({ stock: productoActual.stock - producto.cantidad })
-            .eq('id', producto.producto_id);
-        }
-      }
-    } else if (nuevoEstado === 'RECHAZADO') {
-      for (const producto of cotizacion.productos) {
-        const { data: productoActual } = await supabase
-          .from('productos')
-          .select('stock')
-          .eq('id', producto.producto_id)
-          .single();
+    await fetch('/api/admin/cotizaciones', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, estado: nuevoEstado, productos: cotizacion.productos, actualizarStock }),
+    });
 
-        if (productoActual) {
-          await supabase
-            .from('productos')
-            .update({ stock: productoActual.stock + producto.cantidad })
-            .eq('id', producto.producto_id);
-        }
-      }
-    }
-
-    await supabase.from('cotizaciones').update({ estado: nuevoEstado as any, updated_at: new Date().toISOString() }).eq('id', id);
     const productosRes = await supabase.from('productos').select('id, codigo, nombre, stock').order('codigo');
     if (productosRes.data) setProductosStock(productosRes.data);
     loadData();
@@ -95,25 +71,8 @@ export default function CotizacionesAdmin() {
   const deleteCotizacion = async (id: string) => {
     if (!confirm('¿Eliminar esta cotización?')) return;
 
-    const cotizacion = cotizaciones.find(c => c.id === id);
-    if (cotizacion && cotizacion.estado === 'PENDIENTE') {
-      for (const producto of cotizacion.productos) {
-        const { data: productoActual } = await supabase
-          .from('productos')
-          .select('stock')
-          .eq('id', producto.producto_id)
-          .single();
-
-        if (productoActual) {
-          await supabase
-            .from('productos')
-            .update({ stock: productoActual.stock + producto.cantidad })
-            .eq('id', producto.producto_id);
-        }
-      }
-    }
-
-    await supabase.from('cotizaciones').delete().eq('id', id);
+    await fetch(`/api/admin/cotizaciones?id=${id}`, { method: 'DELETE' });
+    
     const productosRes = await supabase.from('productos').select('id, codigo, nombre, stock').order('codigo');
     if (productosRes.data) setProductosStock(productosRes.data);
     loadData();

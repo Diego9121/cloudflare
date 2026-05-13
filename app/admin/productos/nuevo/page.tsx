@@ -35,11 +35,13 @@ export default function NuevoProductoPage() {
 
   async function loadData() {
     const [modulosRes, subcategoriasRes] = await Promise.all([
-      supabase.from('modulos').select('*').order('nombre'),
-      supabase.from('subcategorias').select('*').order('nombre'),
+      fetch('/api/admin/modulos?tipo=modulos'),
+      fetch('/api/admin/modulos?tipo=subcategorias'),
     ]);
-    if (modulosRes.data) setModulos(modulosRes.data);
-    if (subcategoriasRes.data) setSubcategorias(subcategoriasRes.data);
+    const modulosData = await modulosRes.json();
+    const subcategoriasData = await subcategoriasRes.json();
+    if (modulosData.data) setModulos(modulosData.data);
+    if (subcategoriasData.data) setSubcategorias(subcategoriasData.data);
     setLoading(false);
   }
 
@@ -124,7 +126,11 @@ export default function NuevoProductoPage() {
     };
 
     try {
-      await supabase.from('productos').insert(productoData);
+      await fetch('/api/admin/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productoData),
+      });
       router.push('/admin/productos');
     } catch (err) {
       alert('Error al guardar producto');

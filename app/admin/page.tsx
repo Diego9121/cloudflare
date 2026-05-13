@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 export default function AdminLogin() {
@@ -19,33 +18,21 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('nombre', nombre)
-        .limit(1)
-        .single();
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, password }),
+      });
 
-      if (error) {
-        setError('Error de conexión: ' + error.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Error de conexión');
         setLoading(false);
         return;
       }
 
-      if (!data) {
-        setError('Usuario no encontrado');
-        setLoading(false);
-        return;
-      }
-
-      const passwordValid = password === data.password_hash;
-      if (!passwordValid) {
-        setError('Contraseña incorrecta');
-        setLoading(false);
-        return;
-      }
-
-      sessionStorage.setItem('admin_session', JSON.stringify(data));
+      sessionStorage.setItem('admin_session', JSON.stringify(data.admin));
       router.push('/admin/dashboard');
     } catch (err: any) {
       setError('Error: ' + (err.message || 'Desconocido'));
