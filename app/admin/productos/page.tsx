@@ -7,6 +7,7 @@ import { supabase, Producto, Modulo, Subcategoria, generateProductCode, createMo
 import { formatCurrency } from '@/lib/constants';
 import { AdminProtected } from '@/components/admin-protected';
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { ImportProductsModal } from '@/components/ImportProductsModal';
 
 export default function ProductosAdmin() {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -18,6 +19,7 @@ export default function ProductosAdmin() {
   const [filterAgotados, setFilterAgotados] = useState(false);
   const [showNuevoModuloModal, setShowNuevoModuloModal] = useState(false);
   const [showNuevaSubcategoriaModal, setShowNuevaSubcategoriaModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
@@ -185,6 +187,12 @@ export default function ProductosAdmin() {
             + Nuevo Producto
           </button>
           <button
+            onClick={() => setShowImportModal(true)}
+            className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition text-sm font-semibold"
+          >
+            📥 Importar CSV
+          </button>
+          <button
             onClick={() => setFilterAgotados(!filterAgotados)}
             className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition ${
               filterAgotados
@@ -327,6 +335,15 @@ export default function ProductosAdmin() {
           modulos={modulos}
           onClose={() => setShowNuevaSubcategoriaModal(false)}
           onSave={handleSubcategoriaCreada}
+        />
+      )}
+
+      {showImportModal && (
+        <ImportProductsModal
+          modulos={modulos}
+          subcategorias={subcategorias}
+          onClose={() => setShowImportModal(false)}
+          onComplete={() => { loadTotalCount(); loadProductsPage(currentPage); }}
         />
       )}
     </div>
