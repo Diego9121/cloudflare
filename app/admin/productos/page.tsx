@@ -150,11 +150,11 @@ export default function ProductosAdmin() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
-          <div className="flex gap-3 flex-1">
+          <div className="flex flex-col sm:flex-row gap-2 flex-1">
             <select
               value={filterModulo}
               onChange={(e) => { setFilterModulo(e.target.value); setFilterSubcategoria(''); }}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold bg-white"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold bg-white"
             >
               <option value="">Todos los módulos</option>
               {modulos.map(m => (
@@ -164,7 +164,7 @@ export default function ProductosAdmin() {
             <select
               value={filterSubcategoria}
               onChange={(e) => setFilterSubcategoria(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold bg-white"
+              className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold bg-white"
               disabled={!filterModulo}
             >
               <option value="">Todas las subcategorías</option>
@@ -477,7 +477,7 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="flex flex-col items-center">
-            <div className="relative w-32 h-32 bg-gray-100 rounded-xl overflow-hidden mb-3">
+            <div className="relative w-48 h-48 bg-gray-100 rounded-xl overflow-hidden mb-3">
               {form.imagen_url ? (
                 <Image src={form.imagen_url} alt="Preview" fill className="object-cover" />
               ) : (

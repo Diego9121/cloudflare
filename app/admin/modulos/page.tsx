@@ -286,7 +286,7 @@ function ModuloModal({ modulo, onClose, onSave }: { modulo: Modulo | null; onClo
         <h2 className="text-2xl font-bold text-charcoal mb-6">{modulo ? 'Editar Módulo' : 'Nuevo Módulo'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col items-center">
-            <div className="relative w-32 h-32 bg-gray-100 rounded-xl overflow-hidden mb-3">
+            <div className="relative w-48 h-48 bg-gray-100 rounded-xl overflow-hidden mb-3">
               {form.imagen_url ? (
                 <Image src={form.imagen_url} alt="Preview" fill className="object-cover" />
               ) : (

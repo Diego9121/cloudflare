@@ -14,6 +14,15 @@ export function ImageCropModal({ imageSrc, onClose, onCropComplete }: ImageCropM
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [aspect, setAspect] = useState<number | undefined>(undefined);
+
+  const aspectOptions = [
+    { value: 4/3, label: '4:3' },
+    { value: 16/9, label: '16:9' },
+    { value: 1/1, label: '1:1' },
+    { value: 3/4, label: '3:4' },
+    { value: undefined, label: 'Libre' },
+  ];
 
   const onCropChange = useCallback((crop: { x: number; y: number }) => {
     setCrop(crop);
@@ -90,18 +99,36 @@ export function ImageCropModal({ imageSrc, onClose, onCropComplete }: ImageCropM
           <p className="text-sm text-gray-500">Ajusta el tamaño y posición</p>
         </div>
 
-        <div className="relative h-72 md:h-96 bg-gray-900">
+        <div className="relative h-80 md:h-[500px] bg-gray-900">
           <Cropper
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={undefined}
+            aspect={aspect}
             cropShape="rect"
             showGrid={false}
             onCropChange={onCropChange}
             onZoomChange={onZoomChange}
             onCropComplete={onCropCompleteHandler}
           />
+        </div>
+
+        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {aspectOptions.map((option) => (
+              <button
+                key={option.label}
+                onClick={() => setAspect(option.value)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  aspect === option.value
+                    ? 'bg-gold text-white'
+                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="p-4 border-t border-gray-200">
