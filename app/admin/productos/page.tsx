@@ -22,7 +22,8 @@ export default function ProductosAdmin() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filterModulo, setFilterModulo] = useState('');
+  const [filterSubcategoria, setFilterSubcategoria] = useState('');
   const productsPerPage = 30;
 
   useEffect(() => {
@@ -32,31 +33,26 @@ export default function ProductosAdmin() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterAgotados]);
+  }, [filterAgotados, filterModulo, filterSubcategoria]);
 
   useEffect(() => {
-    if (searchTerm) {
-      loadAllProductsForSearch();
-    } else {
-      loadProductsPage(currentPage);
-    }
-  }, [searchTerm]);
+    loadTotalCount();
+  }, [filterModulo, filterSubcategoria, filterAgotados]);
 
-  async function loadAllProductsForSearch() {
-    setLoading(true);
-    const { data } = await supabase
-      .from('productos')
-      .select('*')
-      .order('modulo_id', { ascending: true })
-      .order('codigo', { ascending: true });
-    if (data) setProductos(data);
-    setLoading(false);
-  }
+  useEffect(() => {
+    loadProductsPage(currentPage);
+  }, [currentPage, filterAgotados, filterModulo, filterSubcategoria]);
 
   async function loadTotalCount() {
     let query = supabase.from('productos').select('*', { count: 'exact', head: true });
     if (filterAgotados) {
       query = query.eq('stock', 0);
+    }
+    if (filterModulo) {
+      query = query.eq('modulo_id', filterModulo);
+    }
+    if (filterSubcategoria) {
+      query = query.eq('subcategoria_id', filterSubcategoria);
     }
     const { count } = await query;
     setTotalProducts(count || 0);
@@ -77,6 +73,12 @@ export default function ProductosAdmin() {
     if (filterAgotados) {
       query = query.eq('stock', 0);
     }
+    if (filterModulo) {
+      query = query.eq('modulo_id', filterModulo);
+    }
+    if (filterSubcategoria) {
+      query = query.eq('subcategoria_id', filterSubcategoria);
+    }
     
     const { data } = await query;
     if (data) setProductos(data);
@@ -92,23 +94,10 @@ export default function ProductosAdmin() {
     if (subcategoriasRes.data) setSubcategorias(subcategoriasRes.data);
   }
 
-  useEffect(() => {
-    if (!searchTerm) {
-      loadProductsPage(currentPage);
-    }
-  }, [currentPage, filterAgotados, searchTerm]);
-
   const getModuloNombre = (id: string) => modulos.find(m => m.id === id)?.nombre || '';
   const getSubcategoriaNombre = (id: string | null) => id ? subcategorias.find(s => s.id === id)?.nombre || '' : '';
 
-  const filteredProducts = searchTerm 
-    ? productos.filter(p => 
-        p.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : productos;
-  
-  const totalPages = searchTerm ? 1 : Math.ceil(totalProducts / productsPerPage);
+  const totalPages = Math.ceil(totalProducts / productsPerPage);
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
 
@@ -161,24 +150,31 @@ export default function ProductosAdmin() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mb-4">
-          <div className="flex gap-2 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <input
-                type="text"
-                placeholder="Buscar por código..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+          <div className="flex gap-3 flex-1">
+            <select
+              value={filterModulo}
+              onChange={(e) => { setFilterModulo(e.target.value); setFilterSubcategoria(''); }}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold bg-white"
+            >
+              <option value="">Todos los módulos</option>
+              {modulos.map(m => (
+                <option key={m.id} value={m.id}>{m.nombre}</option>
+              ))}
+            </select>
+            <select
+              value={filterSubcategoria}
+              onChange={(e) => setFilterSubcategoria(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold bg-white"
+              disabled={!filterModulo}
+            >
+              <option value="">Todas las subcategorías</option>
+              {subcategorias
+                .filter(s => s.modulo_id === filterModulo)
+                .map(s => (
+                  <option key={s.id} value={s.id}>{s.nombre}</option>
+                ))
+              }
+            </select>
           </div>
           <button
             onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
