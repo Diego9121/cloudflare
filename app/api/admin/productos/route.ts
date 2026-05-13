@@ -51,19 +51,37 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const productoData = await request.json();
+    const body = await request.json();
+    
+    // Detectar si es bulk insert (array) o insert individual (object)
+    const isBulk = Array.isArray(body);
+    
+    if (isBulk) {
+      // Bulk insert para importación CSV
+      const { data, error } = await supabaseAdmin
+        .from('productos')
+        .insert(body)
+        .select();
 
-    const { data, error } = await supabaseAdmin
-      .from('productos')
-      .insert(productoData)
-      .select()
-      .single();
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true, productos: data, count: data?.length || 0 });
+    } else {
+      // Insert individual
+      const { data, error } = await supabaseAdmin
+        .from('productos')
+        .insert(body)
+        .select()
+        .single();
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, producto: data });
     }
-
-    return NextResponse.json({ success: true, producto: data });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

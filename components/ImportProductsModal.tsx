@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { supabase, Modulo, Subcategoria } from '@/lib/supabase';
+import { Modulo, Subcategoria } from '@/lib/supabase';
 
 interface ImportProductsModalProps {
   modulos: Modulo[];
@@ -144,24 +144,13 @@ export function ImportProductsModal({ modulos, subcategorias, onClose, onComplet
         subcategoriaId = subcat?.id || null;
       }
 
-      const existingProduct = await supabase
-        .from('productos')
-        .select('id')
-        .eq('codigo', product.codigo)
-        .single();
-
-      if (existingProduct.data) {
-        warnings++;
-        continue;
-      }
-
       let imagenUrl: string | null = null;
       const photo = findPhoto(product.codigo);
       if (photo) {
         imagenUrl = await uploadToCloudinary(photo);
       }
 
-      const { error } = await supabase.from('productos').insert({
+      const productoData = {
         codigo: product.codigo,
         nombre: product.nombre,
         precio: product.precio,
@@ -170,10 +159,21 @@ export function ImportProductsModal({ modulos, subcategorias, onClose, onComplet
         subcategoria_id: subcategoriaId,
         imagen_url: imagenUrl,
         activo: true,
+      };
+
+      const res = await fetch('/api/admin/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productoData),
       });
 
-      if (error) {
-        errors.push(`Fila ${i + 1}: ${error.message}`);
+      if (!res.ok) {
+        const errorData = await res.json();
+        if (errorData.error?.includes('duplicate') || errorData.error?.includes('único')) {
+          warnings++;
+        } else {
+          errors.push(`Fila ${i + 1}: ${errorData.error || 'Error desconocido'}`);
+        }
       } else {
         success++;
       }
