@@ -16,14 +16,6 @@ export function ImageCropModal({ imageSrc, onClose, onCropComplete }: ImageCropM
   const [loading, setLoading] = useState(false);
   const [aspect, setAspect] = useState<number | undefined>(undefined);
 
-  const aspectOptions = [
-    { value: 4/3, label: '4:3' },
-    { value: 16/9, label: '16:9' },
-    { value: 1/1, label: '1:1' },
-    { value: 3/4, label: '3:4' },
-    { value: undefined, label: 'Libre' },
-  ];
-
   const onCropChange = useCallback((crop: { x: number; y: number }) => {
     setCrop(crop);
   }, []);
@@ -92,14 +84,14 @@ export function ImageCropModal({ imageSrc, onClose, onCropComplete }: ImageCropM
   }, [croppedAreaPixels, imageSrc, onCropComplete]);
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-2 sm:p-4">
+      <div className="bg-white rounded-2xl w-full h-full sm:w-full sm:max-w-md sm:h-auto overflow-hidden flex flex-col">
+        <div className="p-3 sm:p-4 border-b border-gray-200">
           <h3 className="text-lg font-bold text-charcoal">Recortar Imagen</h3>
           <p className="text-sm text-gray-500">Ajusta el tamaño y posición</p>
         </div>
 
-        <div className="relative h-80 md:h-[500px] bg-gray-900">
+        <div className="relative flex-1 min-h-[30vh] sm:h-64 bg-gray-900">
           <Cropper
             image={imageSrc}
             crop={crop}
@@ -113,27 +105,9 @@ export function ImageCropModal({ imageSrc, onClose, onCropComplete }: ImageCropM
           />
         </div>
 
-        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
-          <div className="flex flex-wrap gap-2 justify-center">
-            {aspectOptions.map((option) => (
-              <button
-                key={option.label}
-                onClick={() => setAspect(option.value)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  aspect === option.value
-                    ? 'bg-gold text-white'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-4 border-t border-gray-200">
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="p-2 sm:p-4 border-t border-gray-200">
+          <div className="mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
               Zoom: {Math.round(zoom * 100)}%
             </label>
             <input
@@ -147,17 +121,17 @@ export function ImageCropModal({ imageSrc, onClose, onCropComplete }: ImageCropM
             />
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="flex-1 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-100 font-medium transition-colors"
+              className="flex-1 border border-gray-300 py-2 sm:py-2.5 rounded-lg hover:bg-gray-100 font-medium transition-colors text-sm sm:text-base"
             >
               Cancelar
             </button>
             <button
               onClick={getCroppedImg}
               disabled={loading}
-              className="flex-1 bg-gold text-white py-2.5 rounded-lg hover:bg-gold-dark font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-gold text-white py-2 sm:py-2.5 rounded-lg hover:bg-gold-dark font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               {loading ? (
                 <>

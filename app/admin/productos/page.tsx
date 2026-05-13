@@ -176,12 +176,12 @@ export default function ProductosAdmin() {
               }
             </select>
           </div>
-          <button
-            onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
+          <Link
+            href="/admin/productos/nuevo"
             className="px-4 py-2 rounded-lg border-2 border-charcoal text-charcoal bg-white hover:bg-charcoal hover:text-white transition text-sm font-semibold"
           >
             + Nuevo Producto
-          </button>
+          </Link>
           <button
             onClick={() => setShowImportModal(true)}
             className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition text-sm font-semibold"
@@ -471,13 +471,13 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-charcoal mb-6">{product ? 'Editar Producto' : 'Nuevo Producto'}</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-1 sm:p-4 z-50">
+      <div className="bg-white rounded-2xl p-3 sm:p-6 w-full max-w-xs sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl sm:text-2xl font-bold text-charcoal mb-2 sm:mb-6">{product ? 'Editar Producto' : 'Nuevo Producto'}</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
           <div className="flex flex-col items-center">
-            <div className="relative w-48 h-48 bg-gray-100 rounded-xl overflow-hidden mb-3">
+            <div className="relative w-24 h-24 sm:w-40 sm:h-40 bg-gray-100 rounded-lg sm:rounded-xl overflow-hidden mb-2">
               {form.imagen_url ? (
                 <Image src={form.imagen_url} alt="Preview" fill className="object-cover" />
               ) : (
@@ -491,7 +491,7 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
             {uploading ? (
               <span className="text-gold text-sm">Subiendo...</span>
             ) : (
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex gap-2">
                 <div>
                   <input
                     type="file"
@@ -501,12 +501,12 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
                     className="hidden"
                     id="camera-upload"
                   />
-                  <label htmlFor="camera-upload" className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <label htmlFor="camera-upload" className="cursor-pointer flex items-center gap-1.5 px-2 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 text-xs font-medium">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Tomar Foto
+                    Foto
                   </label>
                 </div>
                 <div>
@@ -517,8 +517,8 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
                     className="hidden"
                     id="gallery-upload"
                   />
-                  <label htmlFor="gallery-upload" className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <label htmlFor="gallery-upload" className="cursor-pointer flex items-center gap-1.5 px-2 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-xs font-medium">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     Galería
@@ -528,9 +528,9 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Módulo</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Módulo</label>
               <div className="flex gap-2">
                 <select
                   value={form.modulo_id}
@@ -580,9 +580,9 @@ function ProductModal({ product, modulos, subcategorias, onClose, onSave, onOpen
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Precio (Bs)</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Precio (Bs)</label>
               <input
                 type="number"
                 value={form.precio}
