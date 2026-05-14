@@ -169,13 +169,13 @@ export default function ProductosAdmin() {
           </div>
           <Link
             href="/admin/productos/nuevo"
-            className="px-4 py-2 rounded-lg border-2 border-charcoal text-charcoal bg-white hover:bg-charcoal hover:text-white transition text-sm font-semibold"
+            className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition text-sm font-semibold shadow-md"
           >
             + Nuevo Producto
           </Link>
           <button
             onClick={() => setShowImportModal(true)}
-            className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition text-sm font-semibold"
+            className="px-4 py-2 rounded-lg bg-white border-2 border-black text-black hover:bg-gray-100 transition text-sm font-semibold"
           >
             📥 Importar CSV
           </button>
