@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase, Producto, Modulo, Subcategoria } from '@/lib/supabase';
@@ -8,7 +9,9 @@ import { formatCurrency } from '@/lib/constants';
 import { AdminProtected } from '@/components/admin-protected';
 import { ImportProductsModal } from '@/components/ImportProductsModal';
 
-export default function ProductosAdmin() {
+function ProductosAdminContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [modulos, setModulos] = useState<Modulo[]>([]);
   const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([]);
@@ -19,9 +22,14 @@ export default function ProductosAdmin() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
-  const [filterModulo, setFilterModulo] = useState('');
-  const [filterSubcategoria, setFilterSubcategoria] = useState('');
+  
+  const filterModulo = searchParams.get('modulo') || '';
+  const filterSubcategoria = searchParams.get('subcategoria') || '';
   const productsPerPage = 30;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterModulo, filterSubcategoria]);
 
   useEffect(() => {
     loadTotalCount();
@@ -105,6 +113,21 @@ export default function ProductosAdmin() {
     loadProductsPage(currentPage);
   };
 
+  const updateFilters = useCallback((modulo: string, subcategoria: string) => {
+    const params = new URLSearchParams();
+    if (modulo) params.set('modulo', modulo);
+    if (subcategoria) params.set('subcategoria', subcategoria);
+    router.replace(`/admin/productos?${params.toString()}`);
+  }, [router]);
+
+  const handleModuloChange = (value: string) => {
+    updateFilters(value, '');
+  };
+
+  const handleSubcategoriaChange = (value: string) => {
+    updateFilters(filterModulo, value);
+  };
+
   const handleModuloCreado = (nuevoModulo: Modulo) => {
     setModulos(prev => [...prev, nuevoModulo]);
     setShowNuevoModuloModal(false);
@@ -141,7 +164,7 @@ export default function ProductosAdmin() {
           <div className="flex flex-col sm:flex-row gap-2 flex-1">
             <select
               value={filterModulo}
-              onChange={(e) => { setFilterModulo(e.target.value); setFilterSubcategoria(''); }}
+              onChange={(e) => handleModuloChange(e.target.value)}
               className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold bg-white"
             >
               <option value="">Todos los módulos</option>
@@ -151,7 +174,7 @@ export default function ProductosAdmin() {
             </select>
             <select
               value={filterSubcategoria}
-              onChange={(e) => setFilterSubcategoria(e.target.value)}
+              onChange={(e) => handleSubcategoriaChange(e.target.value)}
               className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-gold bg-white"
               disabled={!filterModulo}
             >
@@ -240,7 +263,7 @@ export default function ProductosAdmin() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <Link href={`/admin/productos/${product.id}`} className="text-blue-500 hover:text-blue-700 mr-2">Editar</Link>
+                    <Link href={`/admin/productos/${product.id}?modulo=${filterModulo}&subcategoria=${filterSubcategoria}`} className="text-blue-500 hover:text-blue-700 mr-2">Editar</Link>
                     <button onClick={() => toggleActivo(product)} className="text-yellow-500 hover:text-yellow-700 mr-2">
                       {product.activo ? 'Desactivar' : 'Activar'}
                     </button>
@@ -470,5 +493,13 @@ function NuevaSubcategoriaModal({ modulos, onClose, onSave }: NuevaSubcategoriaM
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ProductosAdmin() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-cream flex items-center justify-center text-xl text-gold">Cargando...</div>}>
+      <ProductosAdminContent />
+    </Suspense>
   );
 }

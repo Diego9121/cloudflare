@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase, Modulo, Subcategoria, generateProductCode, Producto } from '@/lib/supabase';
@@ -11,6 +11,7 @@ import { ImageCropModal } from '@/components/ImageCropModal';
 export default function EditarProductoPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const productId = params.id as string;
   
   const [producto, setProducto] = useState<Producto | null>(null);
@@ -123,6 +124,15 @@ export default function EditarProductoPage() {
     setUploading(false);
   };
 
+  const volverAPProductos = () => {
+    const params = new URLSearchParams();
+    const modulo = searchParams.get('modulo');
+    const subcategoria = searchParams.get('subcategoria');
+    if (modulo) params.set('modulo', modulo);
+    if (subcategoria) params.set('subcategoria', subcategoria);
+    router.push(`/admin/productos?${params.toString()}`);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.modulo_id) {
@@ -152,7 +162,7 @@ export default function EditarProductoPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: productId, ...productoData }),
       });
-      router.push('/admin/productos');
+      volverAPProductos();
     } catch (err) {
       alert('Error al guardar producto');
     }
@@ -168,9 +178,9 @@ export default function EditarProductoPage() {
       <AdminProtected>
         <div className="min-h-screen bg-cream flex flex-col items-center justify-center">
           <h2 className="text-2xl font-bold text-charcoal mb-4">Producto no encontrado</h2>
-          <Link href="/admin/productos" className="btn-gold px-6 py-2 rounded-lg">
+          <button onClick={volverAPProductos} className="btn-gold px-6 py-2 rounded-lg">
             Volver a Productos
-          </Link>
+          </button>
         </div>
       </AdminProtected>
     );
@@ -181,12 +191,12 @@ export default function EditarProductoPage() {
       <div className="min-h-screen bg-cream">
         <header className="bg-charcoal text-gold py-4 px-4 sm:px-6 shadow-lg">
           <div className="max-w-2xl mx-auto flex justify-between items-center">
-            <Link href="/admin/productos" className="flex items-center gap-2 text-gold hover:text-white transition">
+            <button onClick={volverAPProductos} className="flex items-center gap-2 text-gold hover:text-white transition">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               <span className="hidden sm:inline">Productos</span>
-            </Link>
+            </button>
             <h1 className="text-lg sm:text-xl font-bold">Editar Producto</h1>
             <div className="w-10"></div>
           </div>
@@ -318,9 +328,9 @@ export default function EditarProductoPage() {
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Link href="/admin/productos" className="flex-1 border border-gray-300 py-3 rounded-lg hover:bg-gray-100 font-medium text-center">
+              <button type="button" onClick={volverAPProductos} className="flex-1 border border-gray-300 py-3 rounded-lg hover:bg-gray-100 font-medium text-center">
                 Cancelar
-              </Link>
+              </button>
               <button type="submit" disabled={guardando} className="flex-1 bg-gold text-white py-3 rounded-lg hover:bg-gold-dark font-medium disabled:opacity-50">
                 {guardando ? 'Guardando...' : 'Guardar Cambios'}
               </button>
