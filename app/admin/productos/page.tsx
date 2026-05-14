@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase, Producto, Modulo, Subcategoria, generateProductCode } from '@/lib/supabase';
+import { supabase, Producto, Modulo, Subcategoria } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/constants';
 import { AdminProtected } from '@/components/admin-protected';
-import { ImageCropModal } from '@/components/ImageCropModal';
 import { ImportProductsModal } from '@/components/ImportProductsModal';
 
 export default function ProductosAdmin() {
@@ -14,8 +13,6 @@ export default function ProductosAdmin() {
   const [modulos, setModulos] = useState<Modulo[]>([]);
   const [subcategorias, setSubcategorias] = useState<Subcategoria[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showProductModal, setShowProductModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Producto | null>(null);
   const [filterAgotados, setFilterAgotados] = useState(false);
   const [showNuevoModuloModal, setShowNuevoModuloModal] = useState(false);
   const [showNuevaSubcategoriaModal, setShowNuevaSubcategoriaModal] = useState(false);
@@ -243,7 +240,7 @@ export default function ProductosAdmin() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button onClick={() => { setEditingProduct(product); setShowProductModal(true); }} className="text-blue-500 hover:text-blue-700 mr-2">Editar</button>
+                    <Link href={`/admin/productos/${product.id}`} className="text-blue-500 hover:text-blue-700 mr-2">Editar</Link>
                     <button onClick={() => toggleActivo(product)} className="text-yellow-500 hover:text-yellow-700 mr-2">
                       {product.activo ? 'Desactivar' : 'Activar'}
                     </button>
@@ -297,18 +294,6 @@ export default function ProductosAdmin() {
           </p>
         )}
       </main>
-
-      {showProductModal && (
-        <ProductModal
-          product={editingProduct}
-          modulos={modulos}
-          subcategorias={subcategorias}
-          onClose={() => { setShowProductModal(false); setEditingProduct(null); }}
-          onSave={() => { loadTotalCount(); loadProductsPage(currentPage); }}
-          onOpenNuevoModulo={() => setShowNuevoModuloModal(true)}
-          onOpenNuevaSubcategoria={() => setShowNuevaSubcategoriaModal(true)}
-        />
-      )}
 
       {showNuevoModuloModal && (
         <NuevoModuloModal

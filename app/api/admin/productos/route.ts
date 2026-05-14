@@ -11,11 +11,27 @@ const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '30');
     const filterAgotados = searchParams.get('agotados') === 'true';
     const filterModulo = searchParams.get('modulo') || '';
     const filterSubcategoria = searchParams.get('subcategoria') || '';
+
+    // Búsqueda por ID específico
+    if (id) {
+      const { data, error } = await supabaseAdmin
+        .from('productos')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 404 });
+      }
+
+      return NextResponse.json({ producto: data });
+    }
 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
