@@ -23,33 +23,34 @@ export default function Dashboard() {
 
   async function loadStats() {
     const [productosRes, cotizacionesRes] = await Promise.all([
-      supabase.from('productos').select('*', { count: 'exact' }),
-      supabase.from('cotizaciones').select('*'),
+      fetch('/api/admin/productos?limit=1000').then(r => r.json()),
+      fetch('/api/admin/cotizaciones').then(r => r.json()),
     ]);
 
-    if (productosRes.data) {
-      const agotados = productosRes.data.filter(p => p.stock === 0).length;
-      const stockBajo = productosRes.data.filter(p => p.stock > 0 && p.stock <= 3).length;
+    if (productosRes.productos) {
+      const productos = productosRes.productos;
+      const agotados = productos.filter(p => p.stock === 0).length;
+      const stockBajo = productos.filter(p => p.stock > 0 && p.stock <= 3).length;
       
       setStats(s => ({
         ...s,
-        totalProductos: productosRes.count || 0,
+        totalProductos: productosRes.total || productos.length,
         productosAgotados: agotados,
         productosStockBajo: stockBajo,
       }));
 
-      const productosEnAlerta = productosRes.data
+      const productosEnAlerta = productos
         .filter(p => p.stock <= 3)
         .sort((a, b) => a.stock - b.stock)
         .slice(0, 10);
       setProductosAlerta(productosEnAlerta);
     }
 
-    if (cotizacionesRes.data) {
+    if (cotizacionesRes.cotizaciones) {
       setStats(s => ({
         ...s,
-        cotizacionesPendientes: cotizacionesRes.data.filter(c => c.estado === 'PENDIENTE').length,
-        cotizacionesPagadas: cotizacionesRes.data.filter(c => c.estado === 'PAGADO').length,
+        cotizacionesPendientes: cotizacionesRes.cotizaciones.filter((c: any) => c.estado === 'PENDIENTE').length,
+        cotizacionesPagadas: cotizacionesRes.cotizaciones.filter((c: any) => c.estado === 'PAGADO').length,
       }));
     }
   }
@@ -244,12 +245,9 @@ function CotizacionesRecientes() {
   }, []);
 
   async function loadCotizaciones() {
-    const { data } = await supabase
-      .from('cotizaciones')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5);
-    if (data) setCotizaciones(data);
+    const res = await fetch('/api/admin/cotizaciones');
+    const data = await res.json();
+    if (data.cotizaciones) setCotizaciones(data.cotizaciones.slice(0, 5));
   }
 
   if (cotizaciones.length === 0) {

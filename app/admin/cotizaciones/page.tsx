@@ -27,11 +27,11 @@ export default function CotizacionesAdmin() {
   async function loadData() {
     const [cotizacionesRes, productosRes] = await Promise.all([
       fetch('/api/admin/cotizaciones'),
-      supabase.from('productos').select('id, codigo, nombre, stock').order('codigo'),
+      fetch('/api/admin/productos').then(r => r.json()),
     ]);
     const cotizacionesData = await cotizacionesRes.json();
     if (cotizacionesData.cotizaciones) setCotizaciones(cotizacionesData.cotizaciones);
-    if (productosRes.data) setProductosStock(productosRes.data);
+    if (productosRes.productos) setProductosStock(productosRes.productos);
     setLoading(false);
   }
 
@@ -63,8 +63,8 @@ export default function CotizacionesAdmin() {
       body: JSON.stringify({ id, estado: nuevoEstado, productos: cotizacion.productos, actualizarStock }),
     });
 
-    const productosRes = await supabase.from('productos').select('id, codigo, nombre, stock').order('codigo');
-    if (productosRes.data) setProductosStock(productosRes.data);
+    const productosRes = await fetch('/api/admin/productos').then(r => r.json());
+    if (productosRes.productos) setProductosStock(productosRes.productos);
     loadData();
   };
 
@@ -73,8 +73,8 @@ export default function CotizacionesAdmin() {
 
     await fetch(`/api/admin/cotizaciones?id=${id}`, { method: 'DELETE' });
     
-    const productosRes = await supabase.from('productos').select('id, codigo, nombre, stock').order('codigo');
-    if (productosRes.data) setProductosStock(productosRes.data);
+    const productosRes = await fetch('/api/admin/productos').then(r => r.json());
+    if (productosRes.productos) setProductosStock(productosRes.productos);
     loadData();
   };
 
