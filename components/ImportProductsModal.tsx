@@ -25,7 +25,7 @@ export function ImportProductsModal({ modulos, subcategorias, onClose, onComplet
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, currentProduct: '' });
-  const [result, setResult] = useState<{ success: number; warnings: number; errors: string[] } | null>(null);
+  const [result, setResult] = useState<{ success: number; warnings: string[]; errors: string[] } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const photosInputRef = useRef<HTMLInputElement>(null);
 
@@ -118,8 +118,8 @@ export function ImportProductsModal({ modulos, subcategorias, onClose, onComplet
     setProgress({ current: 0, total: products.length, currentProduct: '' });
 
     const errors: string[] = [];
+    const warnings: string[] = [];
     let success = 0;
-    let warnings = 0;
 
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -136,12 +136,34 @@ export function ImportProductsModal({ modulos, subcategorias, onClose, onComplet
       }
 
       let subcategoriaId: string | null = null;
+      let subcategoriaNotFound = false;
       if (product.subcategoria) {
-        const subcat = subcategorias.find(s => 
-          s.nombre.toUpperCase() === product.subcategoria.toUpperCase() && 
-          s.modulo_id === moduloData.id
-        );
-        subcategoriaId = subcat?.id || null;
+        const subcategoriaNormalizada = product.subcategoria.toUpperCase().trim();
+        
+        const subcat = subcategorias.find(s => {
+          const nombreNormalizado = s.nombre.toUpperCase().trim();
+          return nombreNormalizado === subcategoriaNormalizada && s.modulo_id === moduloData.id;
+        });
+        
+        if (!subcat) {
+          const subcatPartial = subcategorias.find(s => {
+            const nombreNormalizado = s.nombre.toUpperCase().trim();
+            const containsMatch = nombreNormalizado.includes(subcategoriaNormalizada) || 
+                                  subcategoriaNormalizada.includes(nombreNormalizado);
+            return containsMatch && s.modulo_id === moduloData.id;
+          });
+          if (subcatPartial) {
+            subcategoriaId = subcatPartial.id;
+          } else {
+            subcategoriaNotFound = true;
+          }
+        } else {
+          subcategoriaId = subcat.id;
+        }
+        
+        if (subcategoriaNotFound) {
+          warnings.push(`Fila ${i + 1}: Subcategoría "${product.subcategoria}" no encontrada para módulo "${product.modulo}"`);
+        }
       }
 
       let imagenUrl: string | null = null;
@@ -170,7 +192,7 @@ export function ImportProductsModal({ modulos, subcategorias, onClose, onComplet
       if (!res.ok) {
         const errorData = await res.json();
         if (errorData.error?.includes('duplicate') || errorData.error?.includes('único')) {
-          warnings++;
+          warnings.push(`Fila ${i + 1}: Producto "${product.codigo}" ya existe`);
         } else {
           errors.push(`Fila ${i + 1}: ${errorData.error || 'Error desconocido'}`);
         }
@@ -201,10 +223,19 @@ export function ImportProductsModal({ modulos, subcategorias, onClose, onComplet
               <span className="text-gray-600">Exitosos:</span>
               <span className="font-bold text-green-600">{result.success}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Omitidos (ya existen):</span>
-              <span className="font-bold text-yellow-600">{result.warnings}</span>
-            </div>
+            {result.warnings.length > 0 && (
+              <div className="p-3 bg-yellow-50 rounded-lg">
+                <p className="text-yellow-700 font-medium mb-2">Advertencias ({result.warnings.length}):</p>
+                <ul className="text-sm text-yellow-600 list-disc list-inside max-h-32 overflow-y-auto">
+                  {result.warnings.slice(0, 5).map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                  {result.warnings.length > 5 && (
+                    <li>...y {result.warnings.length - 5} más</li>
+                  )}
+                </ul>
+              </div>
+            )}
             {result.errors.length > 0 && (
               <div className="mt-4 p-3 bg-red-50 rounded-lg">
                 <p className="text-red-600 font-medium mb-2">Errores:</p>

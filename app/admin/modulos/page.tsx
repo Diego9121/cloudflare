@@ -196,6 +196,7 @@ export default function ModulosAdmin() {
           subcategoria={editingSubcategoria}
           modulos={modulos}
           selectedModuloId={selectedModuloId || modulos[0]?.id}
+          subcategorias={subcategorias}
           onClose={() => { setShowSubcategoriaModal(false); setEditingSubcategoria(null); }}
           onSave={loadData}
         />
@@ -390,10 +391,11 @@ function ModuloModal({ modulo, onClose, onSave }: { modulo: Modulo | null; onClo
   );
 }
 
-function SubcategoriaModal({ subcategoria, modulos, selectedModuloId, onClose, onSave }: { 
+function SubcategoriaModal({ subcategoria, modulos, selectedModuloId, subcategorias, onClose, onSave }: { 
   subcategoria: Subcategoria | null; 
   modulos: Modulo[];
   selectedModuloId: string;
+  subcategorias: Subcategoria[];
   onClose: () => void; 
   onSave: () => void;
 }) {
@@ -403,12 +405,34 @@ function SubcategoriaModal({ subcategoria, modulos, selectedModuloId, onClose, o
     prefijo_codigo: subcategoria?.prefijo_codigo || '',
   });
   const [guardando, setGuardando] = useState(false);
+  const [prefijoError, setPrefijoError] = useState<string | null>(null);
+
+  const subcategoriasDelModulo = subcategorias.filter(s => s.modulo_id === form.modulo_id && s.id !== subcategoria?.id);
+  const prefijoExistente = subcategoriasDelModulo.find(s => s.prefijo_codigo?.toUpperCase() === form.prefijo_codigo.toUpperCase().trim());
+
+  const validarPrefijo = (prefijo: string, moduloId: string) => {
+    const prefijoNormalizado = prefijo.toUpperCase().trim();
+    if (!prefijoNormalizado) {
+      setPrefijoError('El prefijo de código es obligatorio');
+      return false;
+    }
+    const existente = subcategorias.find(s => 
+      s.prefijo_codigo?.toUpperCase() === prefijoNormalizado && 
+      s.modulo_id === moduloId &&
+      s.id !== subcategoria?.id
+    );
+    if (existente) {
+      setPrefijoError(`El prefijo "${prefijoNormalizado}" ya está en uso por "${existente.nombre}"`);
+      return false;
+    }
+    setPrefijoError(null);
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!form.prefijo_codigo || form.prefijo_codigo.trim() === '') {
-      alert('El prefijo de código es obligatorio');
+    if (!validarPrefijo(form.prefijo_codigo, form.modulo_id)) {
       return;
     }
     
@@ -484,12 +508,27 @@ function SubcategoriaModal({ subcategoria, modulos, selectedModuloId, onClose, o
             <input
               type="text"
               value={form.prefijo_codigo}
-              onChange={(e) => setForm({ ...form, prefijo_codigo: e.target.value.toUpperCase() })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gold focus:border-gold"
+              onChange={(e) => {
+                setForm({ ...form, prefijo_codigo: e.target.value.toUpperCase() });
+                if (e.target.value.trim()) {
+                  validarPrefijo(e.target.value, form.modulo_id);
+                }
+              }}
+              className={`w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gold ${
+                prefijoError ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-gold'
+              }`}
               placeholder="Ej: C (máx 4 caracteres)"
               maxLength={4}
               required
             />
+            {prefijoError && (
+              <p className="text-red-500 text-sm mt-1">{prefijoError}</p>
+            )}
+            {subcategoriasDelModulo.length > 0 && !prefijoError && (
+              <p className="text-gray-500 text-xs mt-1">
+                Prefijos en uso: {subcategoriasDelModulo.map(s => `${s.prefijo_codigo} (${s.nombre})`).join(', ')}
+              </p>
+            )}
           </div>
           <div className="flex gap-4 pt-4">
             <button type="button" onClick={onClose} className="flex-1 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-100">Cancelar</button>
