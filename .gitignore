@@ -38,6 +38,6 @@ yarn-error.log*
 next-env.d.ts
 
 # Cloudflare
-.open-next/
 .dev.vars
 cloudflare-env.d.ts
+.node-version
