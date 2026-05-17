@@ -285,20 +285,36 @@ function ProductosAdminContent() {
               Anterior
             </button>
             
-            <div className="flex items-center gap-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                    currentPage === page
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-blue-100'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
+            <div className="flex items-center gap-1 flex-wrap justify-center">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                const showPage =
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1);
+
+                const showLeftDots = page === 2 && currentPage > 4;
+                const showRightDots = page === totalPages - 1 && currentPage < totalPages - 3;
+
+                if (!showPage && !showLeftDots && !showRightDots) return null;
+
+                if (showLeftDots || showRightDots) {
+                  return <span key={`dots-${page}`} className="px-2 text-gray-400">...</span>;
+                }
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                      currentPage === page
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-blue-100'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
             </div>
 
             <button
