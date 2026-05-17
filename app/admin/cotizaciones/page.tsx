@@ -55,7 +55,7 @@ export default function CotizacionesAdmin() {
     const cotizacion = cotizaciones.find(c => c.id === id);
     if (!cotizacion) return;
 
-    const actualizarStock = nuevoEstado === 'APROBADO' || nuevoEstado === 'RECHAZADO';
+    const actualizarStock = nuevoEstado === 'RECHAZADO';
 
     await fetch('/api/admin/cotizaciones', {
       method: 'PUT',

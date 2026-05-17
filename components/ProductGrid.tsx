@@ -112,34 +112,19 @@ export function ProductGrid({ moduloId, subcategoriaId, subcategorias }: Product
           </button>
           
           <div className="flex items-center gap-1 flex-wrap justify-center">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-              const showPage = 
-                page === 1 || 
-                page === totalPages || 
-                (page >= currentPage - 1 && page <= currentPage + 1);
-              
-              const showDots = (page === currentPage - 2 && currentPage > 3) || (page === currentPage + 2 && currentPage < totalPages - 2);
-              
-              if (!showPage && !showDots) return null;
-              
-              if (showDots) {
-                return <span key={`dots-${page}`} className="px-2 text-gray-400">...</span>;
-              }
-              
-              return (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                    currentPage === page
-                      ? 'bg-gold text-white'
-                      : 'bg-white text-charcoal hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  {page}
-                </button>
-              );
-            })}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                  currentPage === page
+                    ? 'bg-gold text-white'
+                    : 'bg-white text-charcoal hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
           </div>
 
           <button
