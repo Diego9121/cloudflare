@@ -10,5 +10,5 @@ const vars = {
 
 const env = { ...process.env, ...vars };
 
-console.log('Building with environment variables...');
-execSync('npx next build', { stdio: 'inherit', env });
+console.log('Building for Cloudflare Workers...');
+execSync('npx opennextjs-cloudflare build', { stdio: 'inherit', env, shell: true });

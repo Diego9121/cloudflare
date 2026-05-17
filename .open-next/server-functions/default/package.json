@@ -6,10 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "build:cf": "opennextjs-cloudflare build",
-    "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy:cf": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "start": "next start",
-    "lint": "next lint"
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "start": "next start"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -36,11 +35,8 @@
     "@types/react": "^18.3.2",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.5.0",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.3",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.3.0",
-    "typescript": "^5.4.5",
-    "wrangler": "^4.92.0"
+    "typescript": "^5.4.5"
   }
 }

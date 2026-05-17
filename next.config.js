@@ -14,7 +14,6 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  serverExternalPackages: ['pdfkit', 'pdfmake'],
 };
 
 module.exports = nextConfig;
