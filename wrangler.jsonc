@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "joyeria-bella",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets"
+  },
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://gruevwazraatlbxmtwgs.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdydWV2d2F6cmFhdGxieG10d2dzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzODQ0OTksImV4cCI6MjA5Mzk2MDQ5OX0.-d6WsG6J2RXu4fJ4K2ibuUq7Y70PztnAsCRCgUexUdM",
+    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "dmkxj8sls",
+    "NEXT_PUBLIC_WHATSAPP_ADMIN": "59174913218"
+  }
+}
