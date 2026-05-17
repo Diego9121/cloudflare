@@ -17,6 +17,9 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  outputFileTracingExcludes: {
+    '/**': ['**/node_modules/.cache/**'],
+  },
 };
 
 module.exports = nextConfig;
