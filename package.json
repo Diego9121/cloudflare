@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cf": "node build-cf.js",
     "start": "next start"
   },
   "dependencies": {
