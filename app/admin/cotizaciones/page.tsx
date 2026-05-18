@@ -55,12 +55,10 @@ export default function CotizacionesAdmin() {
     const cotizacion = cotizaciones.find(c => c.id === id);
     if (!cotizacion) return;
 
-    const actualizarStock = nuevoEstado === 'RECHAZADO';
-
     await fetch('/api/admin/cotizaciones', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, estado: nuevoEstado, productos: cotizacion.productos, actualizarStock }),
+      body: JSON.stringify({ id, estado: nuevoEstado, productos: cotizacion.productos }),
     });
 
     const productosRes = await fetch('/api/admin/productos').then(r => r.json());
@@ -72,7 +70,7 @@ export default function CotizacionesAdmin() {
     if (!confirm('¿Eliminar esta cotización?')) return;
 
     await fetch(`/api/admin/cotizaciones?id=${id}`, { method: 'DELETE' });
-    
+
     const productosRes = await fetch('/api/admin/productos').then(r => r.json());
     if (productosRes.productos) setProductosStock(productosRes.productos);
     loadData();
@@ -136,7 +134,6 @@ export default function CotizacionesAdmin() {
           >
             <option value="">Todos los estados</option>
             <option value="PENDIENTE">Pendiente</option>
-            <option value="PAGADO">Pagado</option>
             <option value="APROBADO">Aprobado</option>
             <option value="RECHAZADO">Rechazado</option>
           </select>
@@ -216,28 +213,12 @@ export default function CotizacionesAdmin() {
                     >
                       Contactar
                     </button>
-                    
+
                     {cotizacion.estado === 'PENDIENTE' && (
                       <>
                         <button
-                          onClick={() => updateEstado(cotizacion.id, 'PAGADO')}
-                          className="bg-blue-500 text-white px-2 py-2 rounded-lg hover:bg-blue-600 transition text-xs sm:text-sm sm:px-4 sm:py-2 text-center"
-                        >
-                          Marcar Pagado
-                        </button>
-                        <button
-                          onClick={() => updateEstado(cotizacion.id, 'RECHAZADO')}
-                          className="bg-red-500 text-white px-2 py-2 rounded-lg hover:bg-red-600 transition text-xs sm:text-sm sm:px-4 sm:py-2 text-center"
-                        >
-                          Rechazar
-                        </button>
-                      </>
-                    )}
-                    {cotizacion.estado === 'PAGADO' && (
-                      <>
-                        <button
                           onClick={() => updateEstado(cotizacion.id, 'APROBADO')}
-                          className="bg-green-500 text-white px-2 py-2 rounded-lg hover:bg-green-600 transition text-xs sm:text-sm sm:px-4 sm:py-2 text-center"
+                          className="bg-blue-500 text-white px-2 py-2 rounded-lg hover:bg-blue-600 transition text-xs sm:text-sm sm:px-4 sm:py-2 text-center"
                         >
                           Aprobar
                         </button>
@@ -249,12 +230,15 @@ export default function CotizacionesAdmin() {
                         </button>
                       </>
                     )}
-                    <button
-                      onClick={() => deleteCotizacion(cotizacion.id)}
-                      className="border border-red-500 text-red-500 bg-white px-2 py-2 rounded-lg hover:bg-red-50 transition text-xs sm:text-sm sm:px-4 sm:py-2 text-center"
-                    >
-                      Eliminar
-                    </button>
+
+                    {(cotizacion.estado === 'APROBADO' || cotizacion.estado === 'RECHAZADO') && (
+                      <button
+                        onClick={() => deleteCotizacion(cotizacion.id)}
+                        className="border border-red-500 text-red-500 bg-white px-2 py-2 rounded-lg hover:bg-red-50 transition text-xs sm:text-sm sm:px-4 sm:py-2 text-center"
+                      >
+                        Eliminar
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

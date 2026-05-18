@@ -12,7 +12,6 @@ export default function Dashboard() {
     productosAgotados: 0,
     productosStockBajo: 0,
     cotizacionesPendientes: 0,
-    cotizacionesPagadas: 0,
   });
   const [productosAlerta, setProductosAlerta] = useState<any[]>([]);
   const router = useRouter();
@@ -50,7 +49,6 @@ export default function Dashboard() {
       setStats(s => ({
         ...s,
         cotizacionesPendientes: cotizacionesRes.cotizaciones.filter((c: any) => c.estado === 'PENDIENTE').length,
-        cotizacionesPagadas: cotizacionesRes.cotizaciones.filter((c: any) => c.estado === 'PAGADO').length,
       }));
     }
   }
@@ -283,7 +281,6 @@ function CotizacionesRecientes() {
             </div>
             <span className={`text-xs px-3 py-1 rounded-full font-medium ${
               c.estado === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-700' :
-              c.estado === 'PAGADO' ? 'bg-blue-100 text-blue-700' :
               c.estado === 'APROBADO' ? 'bg-green-100 text-green-700' :
               'bg-red-100 text-red-700'
             }`}>

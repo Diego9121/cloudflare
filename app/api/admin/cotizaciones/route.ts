@@ -38,6 +38,55 @@ export async function GET(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const supabaseAdmin = getSupabaseAdmin();
+    const body = await request.json();
+    const { id, estado, productos } = body;
+
+    if (!id || !estado) {
+      return NextResponse.json({ error: 'ID y estado son requeridos' }, { status: 400 });
+    }
+
+    const { data: cotizacionActual } = await supabaseAdmin
+      .from('cotizaciones')
+      .select('estado')
+      .eq('id', id)
+      .single();
+
+    if (!cotizacionActual) {
+      return NextResponse.json({ error: 'Cotización no encontrada' }, { status: 404 });
+    }
+
+    if (estado === 'RECHAZADO' && cotizacionActual.estado !== 'RECHAZADO') {
+      for (const prod of productos) {
+        const { data: productoActual } = await supabaseAdmin
+          .from('productos')
+          .select('stock')
+          .eq('id', prod.producto_id)
+          .single();
+
+        if (productoActual) {
+          await supabaseAdmin
+            .from('productos')
+            .update({ stock: productoActual.stock + prod.cantidad })
+            .eq('id', prod.producto_id);
+        }
+      }
+    }
+
+    const { error } = await supabaseAdmin
+      .from('cotizaciones')
+      .update({ estado, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
