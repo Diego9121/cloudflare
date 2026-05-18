@@ -18,6 +18,30 @@ export async function GET(request: Request) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
     const { searchParams } = new URL(request.url);
+    const estado = searchParams.get('estado');
+
+    let query = supabaseAdmin
+      .from('cotizaciones')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (estado) {
+      query = query.eq('estado', estado);
+    }
+
+    const { data, error } = await query;
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ cotizaciones: data });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const supabaseAdmin = getSupabaseAdmin();
+    const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
