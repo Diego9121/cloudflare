@@ -164,33 +164,49 @@ export default function CarritoPage() {
       }
     }
 
-    for (const prod of productosCotizacion) {
-      const { data: productoActual } = await supabase
-        .from('productos')
-        .select('stock')
-        .eq('id', prod.producto_id)
-        .single();
-
-      if (productoActual) {
-        await supabase
+    try {
+      for (const prod of productosCotizacion) {
+        const { data: productoActual } = await supabase
           .from('productos')
-          .update({ stock: productoActual.stock - prod.cantidad })
-          .eq('id', prod.producto_id);
+          .select('stock')
+          .eq('id', prod.producto_id)
+          .single();
+
+        if (productoActual) {
+          await supabase
+            .from('productos')
+            .update({ stock: productoActual.stock - prod.cantidad })
+            .eq('id', prod.producto_id);
+        }
       }
-    }
 
-    const { error } = await supabase.from('cotizaciones').insert({
-      cliente_nombre: formData.nombre,
-      cliente_celular: formData.celular,
-      cliente_departamento: formData.departamento,
-      cliente_provincia: formData.provincia,
-      cliente_notas: formData.notas,
-      productos: productosCotizacion,
-      estado: 'PENDIENTE',
-    });
+      const { error } = await supabase.from('cotizaciones').insert({
+        cliente_nombre: formData.nombre,
+        cliente_celular: formData.celular,
+        cliente_departamento: formData.departamento,
+        cliente_provincia: formData.provincia,
+        cliente_notas: formData.notas,
+        productos: productosCotizacion,
+        estado: 'PENDIENTE',
+      });
 
-    if (error) {
-      alert('Error al guardar cotización');
+      if (error) throw error;
+    } catch (error) {
+      for (const prod of productosCotizacion) {
+        const { data: productoActual } = await supabase
+          .from('productos')
+          .select('stock')
+          .eq('id', prod.producto_id)
+          .single();
+
+        if (productoActual) {
+          await supabase
+            .from('productos')
+            .update({ stock: productoActual.stock + prod.cantidad })
+            .eq('id', prod.producto_id);
+        }
+      }
+      alert('Error al guardar cotización. Stock revertido.');
       setSubmitting(false);
       return;
     }

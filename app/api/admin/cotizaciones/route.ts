@@ -67,10 +67,14 @@ export async function PUT(request: Request) {
           .single();
 
         if (productoActual) {
-          await supabaseAdmin
-            .from('productos')
-            .update({ stock: productoActual.stock + prod.cantidad })
-            .eq('id', prod.producto_id);
+          const stockActual = productoActual.stock;
+          const stockMinimo = 0;
+          if (stockActual >= stockMinimo && stockActual + prod.cantidad <= 1000) {
+            await supabaseAdmin
+              .from('productos')
+              .update({ stock: stockActual + prod.cantidad })
+              .eq('id', prod.producto_id);
+          }
         }
       }
     }

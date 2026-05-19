@@ -52,6 +52,7 @@ function ProductCardComponent({ product, subcategorias, subcategoriaActivaId }: 
   const handleAgregar = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (estaAgotado) return;
     updateQuantity(product.id, 1);
     setMostrarControles(true);
   };
